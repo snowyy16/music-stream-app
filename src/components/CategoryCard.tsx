@@ -22,6 +22,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
       {/* Bạn có thể thêm Icon hoặc Image ở đây nếu cần */}
       <Text style={styles.cardText}>{categoryName}</Text>
     </TouchableOpacity>
+    
   );
 };
 

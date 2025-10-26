@@ -35,6 +35,9 @@ const SearchScreen: React.FC = () => {
     // 💡 Đảm bảo tên route "CategoryDetail" đã được đăng ký trong Stack Navigator
     navigation.navigate("CategoryDetail", { categoryName });
   };
+  const filteredCategories = categories.filter((category) =>
+    category.name.toLowerCase().includes(searchText.toLowerCase())
+  );
 
   return (
     <ScrollView style={styles.container}>
@@ -71,14 +74,20 @@ const SearchScreen: React.FC = () => {
 
       {/* 💡 SỬ DỤNG COMPONENT MỚI */}
       <View style={styles.grid}>
-        {categories.map((category, index) => (
-          <CategoryCard
-            key={index}
-            categoryName={category.name}
-            backgroundColor={category.color}
-            onPress={() => handleCategoryPress(category.name)}
-          />
-        ))}
+        {filteredCategories.length > 0 ? (
+          filteredCategories.map((category, index) => (
+            <CategoryCard
+              key={index}
+              categoryName={category.name}
+              backgroundColor={category.color}
+              onPress={() => handleCategoryPress(category.name)}
+            />
+          ))
+        ) : (
+          <Text style={{ marginTop: 20, fontSize: 16, color: "#6B7280" }}>
+            Không tìm thấy danh mục phù hợp.
+          </Text>
+        )}
       </View>
     </ScrollView>
   );
