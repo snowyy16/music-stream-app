@@ -6,10 +6,11 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Pressable,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
-import BackButton from "../components/BackButton";
 import { Button } from "react-native-paper";
 
 // ================== TYPE DEFINITIONS ==================
@@ -111,12 +112,19 @@ const CategoryDetailScreen: React.FC = (navgation) => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.button}
+      <Pressable
+        android_ripple={{
+          color: "#fff",
+          borderless: true,
+        }}
+        style={({ pressed }) => [
+          styles.button,
+          pressed && Platform.OS === "ios" ? { opacity: 0.1 } : null,
+        ]}
         onPress={() => navigation.goBack()}
       >
         <Ionicons name="chevron-back" size={24} color="white" />
-      </TouchableOpacity>
+      </Pressable>
       <Text style={styles.title}>{categoryName} Tracks</Text>
 
       <Text style={styles.subtitle}>{tracks.length} bài hát</Text>
@@ -163,7 +171,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     paddingHorizontal: 20,
-    paddingTop: 60,
+    paddingTop: 50,
+    marginTop: 30,
   },
   title: {
     fontSize: 28,
@@ -223,6 +232,15 @@ const styles = StyleSheet.create({
     top: 10,
     left: 10,
     zIndex: 10,
+
+    // Shadow iOS
+    // shadowColor: "#000",
+    // shadowOffset: { width: 0, height: 4 },
+    // shadowOpacity: 0.3,
+    // shadowRadius: 4,
+
+    // Shadow Android
+    elevation: 6,
   },
 });
 

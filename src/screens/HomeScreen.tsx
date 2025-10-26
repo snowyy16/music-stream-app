@@ -123,6 +123,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9FAFB",
     paddingHorizontal: 20,
     paddingTop: 50,
+    marginTop: 20,
   },
   header: {
     flexDirection: "row",
