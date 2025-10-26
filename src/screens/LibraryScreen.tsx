@@ -9,7 +9,9 @@ import {
 } from "react-native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { BottomTabParamList } from "../types/navigation";
-
+import denvau from "../assets/denvau.png";
+import wk from "../assets/weeknd.png";
+import tl from "../assets/tl.png";
 // Định nghĩa Props cho màn hình này
 type Props = BottomTabScreenProps<BottomTabParamList, "Library">;
 
@@ -36,7 +38,11 @@ export default function LibraryScreen({ navigation }: Props) {
       <Text style={styles.sectionTitle}>Nghệ Sĩ</Text>
       {artists.map((item, index) => (
         <TouchableOpacity key={index} style={styles.listItem}>
-          <Image source={{ uri: item.image }} style={styles.listImageCircle} />
+          <Image
+            // Giả sử item.image là biến wk (là kết quả của require)
+            source={item.image}
+            style={styles.listImageCircle}
+          />
           <View style={styles.listInfo}>
             <Text style={styles.listTitle}>{item.name}</Text>
             <Text style={styles.listSubtitle}>Nghệ sĩ</Text>
@@ -48,7 +54,7 @@ export default function LibraryScreen({ navigation }: Props) {
       <Text style={styles.sectionTitle}>Albums</Text>
       {albums.map((item, index) => (
         <TouchableOpacity key={index} style={styles.listItem}>
-          <Image source={{ uri: item.image }} style={styles.listImageSquare} />
+          <Image source={item.image} style={styles.listImageSquare} />
           <View style={styles.listInfo}>
             <Text style={styles.listTitle}>{item.title}</Text>
             <Text style={styles.listSubtitle}>Album • {item.artist}</Text>
@@ -82,24 +88,23 @@ const playlists = [
 ];
 
 const artists = [
-  { name: "The Weeknd", image: "https://i.pravatar.cc/150?img=15" },
-  { name: "Taylor Swift", image: "https://i.pravatar.cc/150?img=16" },
-  { name: "Đen Vâu", image: "https://i.pravatar.cc/150?img=17" },
+  { name: "The Weeknd", image: wk },
+  { name: "Taylor Swift", image: tl },
+  { name: "Đen Vâu", image: denvau },
 ];
 
 const albums = [
   {
     title: "After Hours",
     artist: "The Weeknd",
-    image: "https://picsum.photos/100?random=104",
+    image: wk,
   },
   {
     title: "Midnights",
     artist: "Taylor Swift",
-    image: "https://picsum.photos/100?random=105",
+    image: tl,
   },
 ];
-
 
 const styles = StyleSheet.create({
   // 1. Container (Nền toàn bộ: Trắng)
