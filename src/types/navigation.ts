@@ -1,6 +1,9 @@
+import { NavigatorScreenParams } from "@react-navigation/native";
+
 export type RootStackParamList = {
   AuthStack: undefined;
-  HomeStack: undefined; // stack containing Home (main)
+  HomeStack: NavigatorScreenParams<BottomTabParamList>;
+  PremiumSubscriptionScreen: undefined;
 };
 export type AuthStackParamList = {
   Login: undefined;

@@ -7,61 +7,11 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
+// Giả định bạn đã cài đặt react-native-vector-icons
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 
-export default function HomeScreen() {
-  const navigation = useNavigation<any>();
-
-  return (
-    <ScrollView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.welcomeText}>Chào mừng trở lại 👋</Text>
-          <Text style={styles.subtitle}>Khám phá âm nhạc hôm nay</Text>
-        </View>
-        <TouchableOpacity>
-          <Image
-            style={styles.avatar}
-            source={{ uri: "https://i.pravatar.cc/150?img=12" }}
-          />
-        </TouchableOpacity>
-      </View>
-
-      {/* Playlist đề xuất */}
-      <Text style={styles.sectionTitle}>Dành riêng cho bạn</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {playlists.map((item, index) => (
-          <TouchableOpacity key={index} style={styles.card}>
-            <Image source={{ uri: item.image }} style={styles.cardImage} />
-            <Text style={styles.cardTitle}>{item.title}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      {/* Trending section */}
-      <Text style={styles.sectionTitle}>Đang thịnh hành 🔥</Text>
-      {trendingSongs.map((song, index) => (
-        <TouchableOpacity key={index} style={styles.songRow}>
-          <Image source={{ uri: song.image }} style={styles.songImage} />
-          <View style={styles.songInfo}>
-            <Text style={styles.songTitle}>{song.title}</Text>
-            <Text style={styles.songArtist}>{song.artist}</Text>
-          </View>
-        </TouchableOpacity>
-      ))}
-
-      {/* Button sang Feed */}
-      <TouchableOpacity
-        style={styles.feedButton}
-        onPress={() => navigation.navigate("Feed")}
-      >
-        <Text style={styles.feedButtonText}>🎧 Đi đến Feed</Text>
-      </TouchableOpacity>
-    </ScrollView>
-  );
-}
-
+// --- Data Mock ---
 const playlists = [
   { title: "Top Hits 2025", image: "https://picsum.photos/200?random=1" },
   { title: "Relax & Chill", image: "https://picsum.photos/200?random=2" },
@@ -86,6 +36,88 @@ const trendingSongs = [
   },
 ];
 
+// --- Component: Banner Quảng cáo Premium ---
+const PremiumBanner = () => {
+  const navigation = useNavigation<any>();
+
+  return (
+    <TouchableOpacity
+      style={styles.premiumBanner}
+      onPress={() => navigation.navigate("PremiumSubscriptionScreen")}
+    >
+      <View style={styles.bannerContent}>
+        <Ionicons name="sparkles" size={24} color="#FFD700" />
+        <View style={{ marginLeft: 10 }}>
+          <Text style={styles.bannerTitle}>Nâng cấp lên Premium!</Text>
+          <Text style={styles.bannerSubtitle}>
+            Nghe nhạc không quảng cáo & ngoại tuyến.
+          </Text>
+        </View>
+      </View>
+      <Ionicons name="arrow-forward-circle" size={30} color="#FFD700" />
+    </TouchableOpacity>
+  );
+};
+
+// --- Màn hình chính ---
+export default function HomeScreen() {
+  const navigation = useNavigation<any>();
+
+  return (
+    <ScrollView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.welcomeText}>Chào buổi sáng, Ashley Scott</Text>
+          <Text style={styles.subtitle}>Khám phá âm nhạc hôm nay</Text>
+        </View>
+        <TouchableOpacity>
+          <Image
+            style={styles.avatar}
+            source={{ uri: "https://picsum.photos/id/1025/150/150" }} // Placeholder Avatar
+          />
+        </TouchableOpacity>
+      </View>
+
+      {/* 💡 Banner Premium (Vị trí CTA) */}
+      <PremiumBanner />
+
+      {/* Playlist đề xuất */}
+      <Text style={styles.sectionTitle}>Dành riêng cho bạn</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        {playlists.map((item, index) => (
+          <TouchableOpacity key={index} style={styles.card}>
+            <Image source={{ uri: item.image }} style={styles.cardImage} />
+            <Text style={styles.cardTitle}>{item.title}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      {/* Trending section */}
+      <Text style={styles.sectionTitle}>Đang thịnh hành 🔥</Text>
+      {trendingSongs.map((song, index) => (
+        <TouchableOpacity key={index} style={styles.songRow}>
+          <Image source={{ uri: song.image }} style={styles.songImage} />
+          <View style={styles.songInfo}>
+            <Text style={styles.songTitle}>{song.title}</Text>
+            <Text style={styles.songArtist}>{song.artist}</Text>
+          </View>
+          <Ionicons name="ellipsis-vertical" size={20} color="#6B7280" />
+        </TouchableOpacity>
+      ))}
+
+      {/* Button sang Feed */}
+      <TouchableOpacity
+        style={styles.feedButton}
+        onPress={() => navigation.navigate("Feed")}
+      >
+        <Text style={styles.feedButtonText}>🎧 Đi đến Feed</Text>
+      </TouchableOpacity>
+    </ScrollView>
+  );
+}
+
+// --- Styles Bổ sung/Chỉnh sửa ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -100,12 +132,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   welcomeText: {
-    fontSize: 24,
+    fontSize: 20, // Chỉnh nhỏ hơn một chút để phù hợp với tên người dùng
     fontWeight: "700",
     color: "#111827",
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 14,
     color: "#6B7280",
     marginTop: 4,
   },
@@ -146,6 +178,7 @@ const styles = StyleSheet.create({
   songRow: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between", // Căn chỉnh cho icon ellipsis
     marginBottom: 18,
     padding: 10,
     borderRadius: 12,
@@ -162,7 +195,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginRight: 12,
   },
-  songInfo: { flex: 1 },
+  songInfo: {
+    flex: 1,
+    marginRight: 10,
+  },
   songTitle: {
     fontSize: 16,
     fontWeight: "600",
@@ -179,6 +215,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
+    marginBottom: 40,
     shadowColor: "#000",
     shadowOpacity: 0.15,
     shadowRadius: 6,
@@ -189,5 +226,35 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 17,
     fontWeight: "700",
+  },
+  // --- Style cho Premium Banner ---
+  premiumBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#333", // Màu nền tối
+    padding: 15,
+    borderRadius: 12,
+    marginTop: 10,
+    marginBottom: 5,
+    shadowColor: "#FFD700", // Hiệu ứng shadow vàng nhẹ
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 8,
+  },
+  bannerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  bannerTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "white",
+  },
+  bannerSubtitle: {
+    fontSize: 13,
+    color: "#DDD",
+    marginTop: 2,
   },
 });

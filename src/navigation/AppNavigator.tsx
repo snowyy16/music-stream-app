@@ -16,6 +16,7 @@ import HomeScreen from "../screens/HomeScreen";
 import FeedScreen from "../screens/FeedScreen";
 import { SearchScreen } from "../screens/SearchScreen";
 import LibraryScreen from "../screens/LibraryScreen";
+import PremiumSubscriptionScreen from "../screens/PremiumSubscriptionScreen";
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
@@ -73,6 +74,11 @@ export default function AppNavigator() {
     >
       <RootStack.Screen name="AuthStack" component={AuthStackNavigator} />
       <RootStack.Screen name="HomeStack" component={MainTabs} />
+      <RootStack.Screen
+        name="PremiumSubscriptionScreen"
+        component={PremiumSubscriptionScreen}
+        options={{ headerShown: false }}
+      />
     </RootStack.Navigator>
   );
 }

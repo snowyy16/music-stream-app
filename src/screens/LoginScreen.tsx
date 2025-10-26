@@ -1,4 +1,3 @@
-// src/screens/LoginScreen.tsx
 import React, { useState } from "react";
 import {
   View,
@@ -7,20 +6,37 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  Alert, // Dùng Alert thay vì alert()
 } from "react-native";
-import {
-  NativeStackScreenProps,
-  NativeStackNavigationProp,
-} from "@react-navigation/native-stack";
-import { AuthStackParamList } from "../types/navigation";
-import { RootStackParamList } from "../types/navigation";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { NavigatorScreenParams } from "@react-navigation/native";
+
+export type AuthStackParamList = {
+  Login: undefined;
+  Register: undefined;
+};
+export type BottomTabParamList = {
+  Home: undefined;
+  Search: undefined;
+  Feed: undefined;
+  Library: undefined;
+};
+export type RootStackParamList = {
+  AuthStack: undefined;
+  // Dùng NavigatorScreenParams để cho phép truyền tham số điều hướng tab lồng nhau
+  HomeStack: NavigatorScreenParams<BottomTabParamList>;
+};
+// -------------------------------------------------------------------
+
+// Định nghĩa kiểu Navigation Prop chính xác
 type LoginScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   "AuthStack"
 >;
+
 type Props = {
   navigation: LoginScreenNavigationProp;
-  route: NativeStackScreenProps<AuthStackParamList, "Login">["route"];
+  // route: NativeStackScreenProps<AuthStackParamList, "Login">["route"]; // Không dùng route nên bỏ qua
 };
 
 export default function LoginScreen({ navigation }: Props) {
@@ -28,17 +44,26 @@ export default function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState("");
 
   const handleLogin = () => {
-    // Fake login check
     if (email && password) {
-      navigation.replace("HomeStack");
+      // 💡 SỬA LỖI TYPESCRIPT:
+      // HomeStack hiện đã được định nghĩa là có thể nhận tham số (NavigatorScreenParams<BottomTabParamList>)
+      // Vì thế, ta truyền tham số để điều hướng đến tab 'Home' bên trong HomeStack.
+      navigation.navigate("HomeStack", {
+        screen: "Home", // Màn hình Home trong BottomTabParamList
+      });
     } else {
-      alert("Please enter email & password");
+      Alert.alert("Lỗi Đăng nhập", "Vui lòng nhập Email và Mật khẩu.");
     }
+  };
+
+  // Điều hướng đến màn hình đăng ký
+  const navigateToRegister = () => {
+    // Vì Login và Register ở cùng một stack AuthStack, ta gọi trực tiếp
+    navigation.navigate("AuthStack");
   };
 
   return (
     <View style={styles.container}>
-      {/* Logo */}
       <Image
         source={{
           uri: "https://storage.googleapis.com/pr-newsroom-wp/1/2023/05/Spotify_Primary_Logo_RGB_Green.png",
@@ -46,14 +71,13 @@ export default function LoginScreen({ navigation }: Props) {
         style={styles.logo}
       />
 
-      <Text style={styles.title}>Welcome to MusicApp</Text>
-      <Text style={styles.subtitle}>Sign in to continue</Text>
+      <Text style={styles.title}>Chào mừng trở lại</Text>
 
       {/* Email Input */}
       <TextInput
         style={styles.input}
         placeholder="Email"
-        placeholderTextColor="#aaa"
+        placeholderTextColor="#888"
         keyboardType="email-address"
         value={email}
         onChangeText={setEmail}
@@ -63,7 +87,7 @@ export default function LoginScreen({ navigation }: Props) {
       <TextInput
         style={styles.input}
         placeholder="Password"
-        placeholderTextColor="#aaa"
+        placeholderTextColor="#888"
         secureTextEntry
         value={password}
         onChangeText={setPassword}
@@ -71,23 +95,27 @@ export default function LoginScreen({ navigation }: Props) {
 
       {/* Login Button */}
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Sign In</Text>
+        <Text style={styles.buttonText}>Đăng nhập</Text>
       </TouchableOpacity>
 
       {/* Signup Link */}
-      <TouchableOpacity style={styles.signupContainer}>
+      <TouchableOpacity
+        style={styles.signupContainer}
+        onPress={navigateToRegister}
+      >
         <Text style={styles.signupText}>
-          Don’t have an account? <Text style={styles.signupLink}>Sign Up</Text>
+          Chưa có tài khoản? <Text style={styles.signupLink}>Đăng ký ngay</Text>
         </Text>
       </TouchableOpacity>
     </View>
   );
 }
 
+// --- Styles Đã Sửa cho Dark/Semi-Dark Theme ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#121212", // Nền tối (Dark Theme)
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 24,
@@ -99,26 +127,24 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    color: "#000",
+    color: "#fff", // Chữ trắng
     fontWeight: "700",
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#000",
     marginBottom: 30,
   },
   input: {
     width: "100%",
-    backgroundColor: "#222",
-    borderRadius: 12,
+    backgroundColor: "#1e1e1e", // Màu nền input tối hơn nền chung
+    borderRadius: 8,
     padding: 14,
     fontSize: 16,
-    color: "#fff",
+    color: "#fff", // Chữ trắng
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#333",
   },
   button: {
     width: "100%",
-    backgroundColor: "#1DB954", // Spotify green
+    backgroundColor: "#1DB954", // Màu xanh Spotify nổi bật
     paddingVertical: 16,
     borderRadius: 30,
     alignItems: "center",
@@ -133,11 +159,11 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   signupText: {
-    color: "#fff",
+    color: "#fff", // Chữ trắng
     fontSize: 14,
   },
   signupLink: {
-    color: "#1DB954",
+    color: "#1DB954", // Link màu xanh nổi bật
     fontWeight: "600",
   },
 });
