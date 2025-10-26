@@ -1,114 +1,138 @@
+// src/screens/SearchScreen.tsx
+
 import React, { useState } from "react";
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
   ScrollView,
+  TextInput,
   TouchableOpacity,
-  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
+// 💡 IMPORT COMPONENT MỚI
+import CategoryCard from "../components/CategoryCard";
+
+// --- Dữ liệu Thể loại (Mock Data) ---
 const categories = [
-  { id: 1, title: "Top Hits", image: "https://i.imgur.com/KT7aQKp.jpg" },
-  { id: 2, title: "Relax", image: "https://i.imgur.com/FSvwN2b.jpg" },
-  { id: 3, title: "Workout", image: "https://i.imgur.com/b5Y6aBj.jpg" },
-  { id: 4, title: "Acoustic", image: "https://i.imgur.com/4Dq2Vdj.jpg" },
-  { id: 5, title: "Jazz", image: "https://i.imgur.com/D4fOH9l.jpg" },
-  { id: 6, title: "Trending", image: "https://i.imgur.com/Fi7kqUM.jpeg" },
+  { name: "Top Hits", color: "#6A5ACD" },
+  { name: "Relax", color: "#4682B4" },
+  { name: "Workout", color: "#DC143C" },
+  { name: "Acoustic", color: "#FF8C00" },
+  { name: "Jazz", color: "#3CB371" },
+  { name: "Trending", color: "#FF4500" },
+  // Thêm các category khác nếu muốn điền đủ lưới
 ];
 
-export const SearchScreen = () => {
-  const [searchQuery, setSearchQuery] = useState("");
+const SearchScreen: React.FC = () => {
+  const navigation = useNavigation<any>();
+  const [searchText, setSearchText] = useState("");
+
+  // Hàm điều hướng đến màn hình chi tiết
+  const handleCategoryPress = (categoryName: string) => {
+    // 💡 Đảm bảo tên route "CategoryDetail" đã được đăng ký trong Stack Navigator
+    navigation.navigate("CategoryDetail", { categoryName });
+  };
 
   return (
     <ScrollView style={styles.container}>
-      {/* Search Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Tìm kiếm</Text>
-        <Ionicons name="person-circle-outline" size={40} color="#1F2937" />
+        <TouchableOpacity
+          onPress={() => {
+            /* Điều hướng đến Profile */
+          }}
+        >
+          <Ionicons name="person-circle-outline" size={32} color="#111827" />
+        </TouchableOpacity>
       </View>
 
-      {/* Search Bar */}
-      <View style={styles.searchBar}>
-        <Ionicons name="search-outline" size={22} color="#6B7280" />
+      {/* Input Tìm kiếm */}
+      <View style={styles.searchBox}>
+        <Ionicons
+          name="search"
+          size={20}
+          color="#6B7280"
+          style={styles.searchIcon}
+        />
         <TextInput
-          style={styles.searchInput}
+          style={styles.input}
           placeholder="Tìm bài hát, nghệ sĩ hoặc album..."
-          placeholderTextColor="#9CA3AF"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
+          placeholderTextColor="#6B7280"
+          value={searchText}
+          onChangeText={setSearchText}
         />
       </View>
 
-      {/* Suggested Categories */}
+      {/* Khám phá Danh mục */}
       <Text style={styles.sectionTitle}>Khám phá âm nhạc</Text>
+
+      {/* 💡 SỬ DỤNG COMPONENT MỚI */}
       <View style={styles.grid}>
-        {categories.map((item) => (
-          <TouchableOpacity key={item.id} style={styles.card}>
-            <Image source={{ uri: item.image }} style={styles.cardImage} />
-            <Text style={styles.cardTitle}>{item.title}</Text>
-          </TouchableOpacity>
+        {categories.map((category, index) => (
+          <CategoryCard
+            key={index}
+            categoryName={category.name}
+            backgroundColor={category.color}
+            onPress={() => handleCategoryPress(category.name)}
+          />
         ))}
       </View>
     </ScrollView>
   );
 };
+
+// --- Styles cho SearchScreen ---
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F9FAFB", paddingHorizontal: 20 },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    paddingHorizontal: 20,
+    paddingTop: 50,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 50,
     marginBottom: 20,
   },
-  title: { fontSize: 28, fontWeight: "700", color: "#111827" },
-  searchBar: {
+  title: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "#111827",
+  },
+  searchBox: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    marginBottom: 24,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    marginBottom: 25,
   },
-  searchInput: { flex: 1, marginLeft: 10, fontSize: 16, color: "#111827" },
+  searchIcon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    height: 48,
+    fontSize: 16,
+    color: "#111827",
+  },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: "600",
-    marginBottom: 12,
+    fontWeight: "bold",
     color: "#111827",
+    marginBottom: 10,
   },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
+    marginTop: 10,
   },
-  card: {
-    width: "48%",
-    backgroundColor: "#FFFFFF",
-    marginBottom: 16,
-    borderRadius: 12,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
-  },
-  cardImage: { width: "100%", height: 120 },
-  cardTitle: {
-    padding: 10,
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#111827",
-  },
+  // Lưu ý: CategoryCard styles đã được chuyển sang file riêng.
 });
 
 export default SearchScreen;

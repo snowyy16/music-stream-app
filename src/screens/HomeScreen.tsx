@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-// Giả định bạn đã cài đặt react-native-vector-icons
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 
@@ -36,7 +35,7 @@ const trendingSongs = [
   },
 ];
 
-// --- Component: Banner Quảng cáo Premium ---
+// --- Component: Banner Quảng cáo Premium (Không đổi) ---
 const PremiumBanner = () => {
   const navigation = useNavigation<any>();
 
@@ -74,12 +73,12 @@ export default function HomeScreen() {
         <TouchableOpacity>
           <Image
             style={styles.avatar}
-            source={{ uri: "https://picsum.photos/id/1025/150/150" }} // Placeholder Avatar
+            source={{ uri: "https://picsum.photos/id/1025/150/150" }}
           />
         </TouchableOpacity>
       </View>
 
-      {/* 💡 Banner Premium (Vị trí CTA) */}
+      {/* Banner Premium */}
       <PremiumBanner />
 
       {/* Playlist đề xuất */}
@@ -117,7 +116,7 @@ export default function HomeScreen() {
   );
 }
 
-// --- Styles Bổ sung/Chỉnh sửa ---
+// --- Styles (Không đổi) ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -132,7 +131,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   welcomeText: {
-    fontSize: 20, // Chỉnh nhỏ hơn một chút để phù hợp với tên người dùng
+    fontSize: 20,
     fontWeight: "700",
     color: "#111827",
   },
@@ -178,7 +177,7 @@ const styles = StyleSheet.create({
   songRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between", // Căn chỉnh cho icon ellipsis
+    justifyContent: "space-between",
     marginBottom: 18,
     padding: 10,
     borderRadius: 12,
@@ -227,17 +226,16 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "700",
   },
-  // --- Style cho Premium Banner ---
   premiumBanner: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#333", // Màu nền tối
+    backgroundColor: "#333",
     padding: 15,
     borderRadius: 12,
     marginTop: 10,
     marginBottom: 5,
-    shadowColor: "#FFD700", // Hiệu ứng shadow vàng nhẹ
+    shadowColor: "#FFD700",
     shadowOpacity: 0.4,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },

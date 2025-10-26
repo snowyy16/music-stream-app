@@ -14,9 +14,11 @@ import LoginScreen from "../screens/LoginScreen";
 // import RegisterScreen from "../screens/RegisterScreen";
 import HomeScreen from "../screens/HomeScreen";
 import FeedScreen from "../screens/FeedScreen";
-import { SearchScreen } from "../screens/SearchScreen";
+
 import LibraryScreen from "../screens/LibraryScreen";
 import PremiumSubscriptionScreen from "../screens/PremiumSubscriptionScreen";
+import SearchScreen from "../screens/SearchScreen";
+import CategoryDetailScreen from "../screens/CategoriesDetailScreen";
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
@@ -77,6 +79,11 @@ export default function AppNavigator() {
       <RootStack.Screen
         name="PremiumSubscriptionScreen"
         component={PremiumSubscriptionScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="CategoryDetail"
+        component={CategoryDetailScreen}
         options={{ headerShown: false }}
       />
     </RootStack.Navigator>

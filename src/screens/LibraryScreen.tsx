@@ -100,6 +100,7 @@ const albums = [
   },
 ];
 
+
 const styles = StyleSheet.create({
   // 1. Container (Nền toàn bộ: Trắng)
   container: {
