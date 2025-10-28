@@ -9,9 +9,6 @@ import {
 } from "react-native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { BottomTabParamList } from "../types/navigation";
-import denvau from "../assets/denvau.png";
-import wk from "../assets/weeknd.png";
-import tl from "../assets/tl.png";
 // Định nghĩa Props cho màn hình này
 type Props = BottomTabScreenProps<BottomTabParamList, "Library">;
 
@@ -39,8 +36,11 @@ export default function LibraryScreen({ navigation }: Props) {
       {artists.map((item, index) => (
         <TouchableOpacity key={index} style={styles.listItem}>
           <Image
-            // Giả sử item.image là biến wk (là kết quả của require)
-            source={item.image}
+            source={{
+              uri:
+                item.image ||
+                `https://picsum.photos/100?random=${index + 200}`, // fallback khi chưa có ảnh
+            }}
             style={styles.listImageCircle}
           />
           <View style={styles.listInfo}>
@@ -50,11 +50,12 @@ export default function LibraryScreen({ navigation }: Props) {
         </TouchableOpacity>
       ))}
 
+
+
       {/* 3. Phần Albums */}
       <Text style={styles.sectionTitle}>Albums</Text>
       {albums.map((item, index) => (
         <TouchableOpacity key={index} style={styles.listItem}>
-          <Image source={item.image} style={styles.listImageSquare} />
           <View style={styles.listInfo}>
             <Text style={styles.listTitle}>{item.title}</Text>
             <Text style={styles.listSubtitle}>Album • {item.artist}</Text>
@@ -88,21 +89,29 @@ const playlists = [
 ];
 
 const artists = [
-  { name: "The Weeknd", image: wk },
-  { name: "Taylor Swift", image: tl },
-  { name: "Đen Vâu", image: denvau },
+  {
+    name: "The Weeknd",
+    image: "https://upload.wikimedia.org/wikipedia/en/a/a0/The_Weeknd_-_After_Hours.png",
+  },
+  {
+    name: "Taylor Swift",
+    image: "https://upload.wikimedia.org/wikipedia/en/f/f6/Taylor_Swift_-_Midnights.png",
+  },
+  {
+    name: "Đen Vâu",
+    image: "https://upload.wikimedia.org/wikipedia/commons/f/f7/%C4%90en_Vau_2022.jpg",
+  },
 ];
+
 
 const albums = [
   {
     title: "After Hours",
     artist: "The Weeknd",
-    image: wk,
   },
   {
     title: "Midnights",
     artist: "Taylor Swift",
-    image: tl,
   },
 ];
 

@@ -19,6 +19,7 @@ import LibraryScreen from "../screens/LibraryScreen";
 import PremiumSubscriptionScreen from "../screens/PremiumSubscriptionScreen";
 import SearchScreen from "../screens/SearchScreen";
 import CategoryDetailScreen from "../screens/CategoriesDetailScreen";
+import PlayScreen from "../screens/PlayScreen";
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
@@ -86,6 +87,7 @@ export default function AppNavigator() {
         component={CategoryDetailScreen}
         options={{ headerShown: false }}
       />
+      <RootStack.Screen name="PlayScreen" component={PlayScreen} />
     </RootStack.Navigator>
   );
 }
