@@ -11,7 +11,6 @@ import type {
 } from "../types/navigation";
 
 import LoginScreen from "../screens/LoginScreen";
-// import RegisterScreen from "../screens/RegisterScreen";
 import HomeScreen from "../screens/HomeScreen";
 import FeedScreen from "../screens/FeedScreen";
 
@@ -19,6 +18,7 @@ import LibraryScreen from "../screens/LibraryScreen";
 import PremiumSubscriptionScreen from "../screens/PremiumSubscriptionScreen";
 import SearchScreen from "../screens/SearchScreen";
 import CategoryDetailScreen from "../screens/CategoriesDetailScreen";
+import PlayScreen from "../screens/PlayScreen";
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
@@ -29,10 +29,11 @@ function AuthStackNavigator() {
   return (
     <AuthStack.Navigator screenOptions={{ headerShown: false }}>
       <AuthStack.Screen name="Login" component={LoginScreen} />
-      {/* <AuthStack.Screen name="Register" component={RegisterScreen} /> */}
+      
     </AuthStack.Navigator>
   );
 }
+
 
 // Bottom Tabs cho Home
 function MainTabs() {
@@ -86,6 +87,7 @@ export default function AppNavigator() {
         component={CategoryDetailScreen}
         options={{ headerShown: false }}
       />
+      <RootStack.Screen name="PlayScreen" component={PlayScreen} />
     </RootStack.Navigator>
   );
 }

@@ -1,44 +1,32 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { withFullUrl } from "../utils/url";
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Image,
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { BASE_URL } from "../config";
 
-// --- Data Mock ---
-const playlists = [
-  { title: "Top Hits 2025", image: "https://picsum.photos/200?random=1" },
-  { title: "Relax & Chill", image: "https://picsum.photos/200?random=2" },
-  { title: "Workout Mix", image: "https://picsum.photos/200?random=3" },
-];
+interface Song {
+  _id: string;
+  title: string;
+  artist: string;
+  image: string;
+  url: string;
+  localPath?: string;
+  downloaded?: boolean;
+}
 
-const trendingSongs = [
-  {
-    title: "Shape of You",
-    artist: "Ed Sheeran",
-    image: "https://picsum.photos/100?random=4",
-  },
-  {
-    title: "Blinding Lights",
-    artist: "The Weeknd",
-    image: "https://picsum.photos/100?random=5",
-  },
-  {
-    title: "Levitating",
-    artist: "Dua Lipa",
-    image: "https://picsum.photos/100?random=6",
-  },
-];
-
-// --- Component: Banner Quảng cáo Premium (Không đổi) ---
+// ===== Banner Premium =====
 const PremiumBanner = () => {
   const navigation = useNavigation<any>();
-
   return (
     <TouchableOpacity
       style={styles.premiumBanner}
@@ -58,72 +46,149 @@ const PremiumBanner = () => {
   );
 };
 
-// --- Màn hình chính ---
+// ===== HomeScreen chính =====
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
+  const [songs, setSongs] = useState<Song[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const API_URL = `${BASE_URL}/api/songs`;
+
+  // ---- Fetch danh sách + NORMALIZE URL ngay sau khi nhận dữ liệu ----
+  useEffect(() => {
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    const fetchSongs = async () => {
+      try {
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const res = await fetch(API_URL, { signal });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data: Song[] = await res.json();
+
+        // ⚠️ Chuẩn hoá image/url thành HTTP đầy đủ (kèm encode) ngay tại đây
+        const normalized = data.map(withFullUrl);
+        setSongs(normalized.slice(0, 10));
+      } catch (err: any) {
+        if (err.name === "AbortError") {
+          console.error("❌ Lỗi tải danh sách bài hát: Timed out (5s).");
+        } else {
+          console.error("❌ Lỗi tải danh sách bài hát:", err);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSongs();
+    return () => controller.abort();
+  }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const res = await fetch(API_URL);
+      const data: Song[] = await res.json();
+      // Normalize khi refresh
+      setSongs(data.map(withFullUrl));
+    } catch (err) {
+      console.error("❌ Lỗi refresh danh sách bài hát:", err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color="#111827" />
+      </View>
+    );
+  }
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.welcomeText}>Chào buổi sáng, Ashley Scott</Text>
-          <Text style={styles.subtitle}>Khám phá âm nhạc hôm nay</Text>
-        </View>
-        <TouchableOpacity>
-          <Image
-            style={styles.avatar}
-            source={{ uri: "https://picsum.photos/id/1025/150/150" }}
-          />
-        </TouchableOpacity>
-      </View>
-
-      {/* Banner Premium */}
-      <PremiumBanner />
-
-      {/* Playlist đề xuất */}
-      <Text style={styles.sectionTitle}>Dành riêng cho bạn</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {playlists.map((item, index) => (
-          <TouchableOpacity key={index} style={styles.card}>
-            <Image source={{ uri: item.image }} style={styles.cardImage} />
-            <Text style={styles.cardTitle}>{item.title}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      {/* Trending section */}
-      <Text style={styles.sectionTitle}>Đang thịnh hành 🔥</Text>
-      {trendingSongs.map((song, index) => (
-        <TouchableOpacity key={index} style={styles.songRow}>
-          <Image source={{ uri: song.image }} style={styles.songImage} />
-          <View style={styles.songInfo}>
-            <Text style={styles.songTitle}>{song.title}</Text>
-            <Text style={styles.songArtist}>{song.artist}</Text>
+    <FlatList
+      style={styles.container}
+      data={songs}
+      keyExtractor={(item) => item._id}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+      ListHeaderComponent={
+        <>
+          {/* Header */}
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.welcomeText}>Chào buổi sáng, Ashley Scott</Text>
+              <Text style={styles.subtitle}>Khám phá âm nhạc hôm nay</Text>
+            </View>
+            <TouchableOpacity>
+              <Image
+                style={styles.avatar}
+                source={{ uri: "https://picsum.photos/id/1025/150/150" }}
+              />
+            </TouchableOpacity>
           </View>
-          <Ionicons name="ellipsis-vertical" size={20} color="#6B7280" />
-        </TouchableOpacity>
-      ))}
 
-      {/* Button sang Feed */}
-      <TouchableOpacity
-        style={styles.feedButton}
-        onPress={() => navigation.navigate("Feed")}
-      >
-        <Text style={styles.feedButtonText}>🎧 Đi đến Feed</Text>
-      </TouchableOpacity>
-    </ScrollView>
+          {/* Banner Premium */}
+          <PremiumBanner />
+          <Text style={styles.sectionTitle}>Đang thịnh hành 🔥</Text>
+        </>
+      }
+      renderItem={({ item, index }: { item: Song; index: number }) => (
+        <TouchableOpacity
+          style={styles.songRow}
+          onPress={() =>
+            navigation.navigate("PlayScreen", {
+              song: item,
+              queue: songs,   // mảng đã normalize
+              index,          // vị trí bài được bấm
+            })
+          }
+        >
+          <Image source={{ uri: item.image }} style={styles.songImage} />
+          <View style={styles.songInfo}>
+            <Text style={styles.songTitle}>{item.title}</Text>
+            <Text style={styles.songArtist}>{item.artist}</Text>
+          </View>
+          <Ionicons name="play-circle" size={28} color="#111827" />
+        </TouchableOpacity>
+      )}
+      ListFooterComponent={
+        <>
+          <TouchableOpacity
+            style={styles.feedButton}
+            onPress={() => navigation.navigate("Feed")}
+          >
+            <Text style={styles.feedButtonText}>🎧 Đi đến Feed</Text>
+          </TouchableOpacity>
+          <View style={{ height: 40 }} />
+        </>
+      }
+      ListEmptyComponent={
+        loading ? (
+          <ActivityIndicator size="large" color="#111827" />
+        ) : (
+          <Text style={{ color: "#6B7280", textAlign: "center" }}>
+            Không có bài hát nào 😢
+          </Text>
+        )
+      }
+    />
   );
 }
 
-// --- Styles (Không đổi) ---
+// ===== Styles =====
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F9FAFB",
     paddingHorizontal: 20,
     paddingTop: 50,
-    marginTop: 20,
   },
   header: {
     flexDirection: "row",
@@ -153,27 +218,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#111827",
     marginVertical: 16,
-  },
-  card: {
-    alignItems: "center",
-    marginRight: 16,
-  },
-  cardImage: {
-    width: 135,
-    height: 135,
-    borderRadius: 14,
-    marginBottom: 8,
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 5,
-  },
-  cardTitle: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#374151",
-    textAlign: "center",
   },
   songRow: {
     flexDirection: "row",
@@ -242,18 +286,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     elevation: 8,
   },
-  bannerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  bannerTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "white",
-  },
-  bannerSubtitle: {
-    fontSize: 13,
-    color: "#DDD",
-    marginTop: 2,
-  },
+  bannerContent: { flexDirection: "row", alignItems: "center" },
+  bannerTitle: { fontSize: 16, fontWeight: "bold", color: "white" },
+  bannerSubtitle: { fontSize: 13, color: "#DDD", marginTop: 2 },
 });

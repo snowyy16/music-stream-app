@@ -1,6 +1,5 @@
 // src/screens/SearchScreen.tsx
-
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -8,12 +7,23 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
+  Image,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-
-// 💡 IMPORT COMPONENT MỚI
+import { BASE_URL } from "../config";
 import CategoryCard from "../components/CategoryCard";
+import { withFullUrl } from "../utils/url";
+
+interface Song {
+  _id: string;
+  title: string;
+  artist: string;
+  image: string;
+  url: string;
+  category?: string;
+}
 
 // --- Dữ liệu Thể loại (Mock Data) ---
 const categories = [
@@ -23,18 +33,78 @@ const categories = [
   { name: "Acoustic", color: "#FF8C00" },
   { name: "Jazz", color: "#3CB371" },
   { name: "Trending", color: "#FF4500" },
-  // Thêm các category khác nếu muốn điền đủ lưới
 ];
 
-const SearchScreen: React.FC = () => {
+export default function SearchScreen() {
   const navigation = useNavigation<any>();
   const [searchText, setSearchText] = useState("");
+  const [songs, setSongs] = useState<Song[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Hàm điều hướng đến màn hình chi tiết
+  const fetchControllerRef = useRef<AbortController | null>(null);
+
   const handleCategoryPress = (categoryName: string) => {
-    // 💡 Đảm bảo tên route "CategoryDetail" đã được đăng ký trong Stack Navigator
     navigation.navigate("CategoryDetail", { categoryName });
   };
+
+  // 🎧 Hàm tìm kiếm bài hát
+  const fetchSongs = async (query: string) => {
+    const q = query.trim();
+    if (!q) {
+      setSongs([]);
+      return;
+    }
+
+    // Huỷ request cũ (nếu còn)
+    if (fetchControllerRef.current) {
+      fetchControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    fetchControllerRef.current = controller;
+
+    setLoading(true);
+    try {
+      const timeout = setTimeout(() => controller.abort(), 8000); // timeout 8s
+      const res = await fetch(
+        `${BASE_URL}/api/songs?search=${encodeURIComponent(q)}`,
+        { signal: controller.signal }
+      );
+      clearTimeout(timeout);
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data: Song[] = await res.json();
+
+      // 🔧 Chuẩn hoá URL ảnh/nhạc để tránh -1002 khi phát
+      setSongs(data.map(withFullUrl));
+    } catch (error: any) {
+      if (error.name === "AbortError") {
+        // bị huỷ do gõ tiếp hoặc timeout
+        return;
+      }
+      console.error("❌ Lỗi tìm kiếm bài hát:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔍 Gọi API khi người dùng gõ (debounce 500ms)
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      fetchSongs(searchText);
+    }, 500);
+    return () => clearTimeout(delayDebounce);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchText]);
+
+  // cleanup khi unmount
+  useEffect(() => {
+    return () => {
+      if (fetchControllerRef.current) {
+        fetchControllerRef.current.abort();
+      }
+    };
+  }, []);
+
   const filteredCategories = categories.filter((category) =>
     category.name.toLowerCase().includes(searchText.toLowerCase())
   );
@@ -43,105 +113,97 @@ const SearchScreen: React.FC = () => {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Tìm kiếm</Text>
-        <TouchableOpacity
-          onPress={() => {
-            /* Điều hướng đến Profile */
-          }}
-        >
+        <TouchableOpacity>
           <Ionicons name="person-circle-outline" size={32} color="#111827" />
         </TouchableOpacity>
       </View>
 
       {/* Input Tìm kiếm */}
       <View style={styles.searchBox}>
-        <Ionicons
-          name="search"
-          size={20}
-          color="#6B7280"
-          style={styles.searchIcon}
-        />
+        <Ionicons name="search" size={20} color="#6B7280" style={styles.searchIcon} />
         <TextInput
           style={styles.input}
           placeholder="Tìm bài hát, nghệ sĩ hoặc album..."
           placeholderTextColor="#6B7280"
           value={searchText}
           onChangeText={setSearchText}
+          autoCorrect={false}
+          autoCapitalize="none"
+          returnKeyType="search"
         />
       </View>
 
-      {/* Khám phá Danh mục */}
-      <Text style={styles.sectionTitle}>Khám phá âm nhạc</Text>
+      {/* Nếu người dùng đang gõ → hiển thị kết quả bài hát */}
+      {searchText ? (
+        <>
+          <Text style={styles.sectionTitle}>Kết quả tìm kiếm</Text>
 
-      {/* 💡 SỬ DỤNG COMPONENT MỚI */}
-      <View style={styles.grid}>
-        {filteredCategories.length > 0 ? (
-          filteredCategories.map((category, index) => (
-            <CategoryCard
-              key={index}
-              categoryName={category.name}
-              backgroundColor={category.color}
-              onPress={() => handleCategoryPress(category.name)}
-            />
-          ))
-        ) : (
-          <Text style={{ marginTop: 20, fontSize: 16, color: "#6B7280" }}>
-            Không tìm thấy danh mục phù hợp.
-          </Text>
-        )}
-      </View>
+          {loading ? (
+            <ActivityIndicator size="large" color="#111827" />
+          ) : songs.length > 0 ? (
+            songs.map((song) => (
+              <TouchableOpacity
+                key={song._id}
+                style={styles.songRow}
+                onPress={() => navigation.navigate("PlayScreen", { song })} // song đã normalize
+              >
+                <Image source={{ uri: song.image }} style={styles.songImage} />
+                <View style={styles.songInfo}>
+                  <Text style={styles.songTitle}>{song.title}</Text>
+                  <Text style={styles.songArtist}>{song.artist}</Text>
+                </View>
+                <Ionicons name="play-circle" size={28} color="#111827" />
+              </TouchableOpacity>
+            ))
+          ) : (
+            <Text style={{ textAlign: "center", color: "#6B7280", marginTop: 10 }}>
+              Không tìm thấy bài hát nào.
+            </Text>
+          )}
+        </>
+      ) : (
+        <>
+          <Text style={styles.sectionTitle}>Khám phá âm nhạc</Text>
+          <View style={styles.grid}>
+            {filteredCategories.map((category, index) => (
+              <CategoryCard
+                key={index}
+                categoryName={category.name}
+                backgroundColor={category.color}
+                onPress={() => handleCategoryPress(category.name)}
+              />
+            ))}
+          </View>
+        </>
+      )}
     </ScrollView>
   );
-};
+}
 
-// --- Styles cho SearchScreen ---
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    paddingHorizontal: 20,
-    paddingTop: 50,
-  },
+  container: { flex: 1, backgroundColor: "#fff", paddingHorizontal: 20, paddingTop: 50 },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
+    flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#111827",
-  },
+  title: { fontSize: 32, fontWeight: "bold", color: "#111827" },
   searchBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F3F4F6",
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    marginBottom: 25,
+    flexDirection: "row", alignItems: "center", backgroundColor: "#F3F4F6",
+    borderRadius: 10, paddingHorizontal: 15, marginBottom: 25,
   },
-  searchIcon: {
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    height: 48,
-    fontSize: 16,
-    color: "#111827",
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#111827",
-    marginBottom: 10,
-  },
+  searchIcon: { marginRight: 10 },
+  input: { flex: 1, height: 48, fontSize: 16, color: "#111827" },
+  sectionTitle: { fontSize: 20, fontWeight: "bold", color: "#111827", marginBottom: 10 },
   grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    marginTop: 10,
+    flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginTop: 10,
   },
-  // Lưu ý: CategoryCard styles đã được chuyển sang file riêng.
+  songRow: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    marginBottom: 18, padding: 10, borderRadius: 12, backgroundColor: "#FFF",
+    shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 }, elevation: 2,
+  },
+  songImage: { width: 60, height: 60, borderRadius: 10, marginRight: 12 },
+  songInfo: { flex: 1, marginRight: 10 },
+  songTitle: { fontSize: 16, fontWeight: "600", color: "#111827" },
+  songArtist: { fontSize: 14, color: "#6B7280", marginTop: 2 },
 });
-
-export default SearchScreen;

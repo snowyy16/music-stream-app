@@ -5,6 +5,7 @@ export type RootStackParamList = {
   HomeStack: NavigatorScreenParams<BottomTabParamList>;
   PremiumSubscriptionScreen: undefined;
   CategoryDetail: { categoryName: string };
+  PlayScreen: { song?: any }
 };
 export type AuthStackParamList = {
   Login: undefined;
