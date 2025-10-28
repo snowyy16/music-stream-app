@@ -15,22 +15,20 @@ app.use(express.json());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ⚡ Quan trọng 1: Gửi file nhạc với header đúng
 
 // Config đường dẫn tuyệt đối cho /music
 app.use(
   "/music",
   express.static(path.join(__dirname, "music"), {
-    setHeaders: (res, path) => {
+    setHeaders: (res) => {
       res.set("Content-Type", "audio/mpeg");
     },
   })
 );
 
+
 // Public thư mục chứa ảnh
 app.use("/image", express.static(path.join(__dirname, "image")));
-
-
 
 // ⚡ Quan trọng 2: Cho phép iPhone truy cập qua mạng LAN
 app.listen(process.env.PORT || 4000, "0.0.0.0", () => {

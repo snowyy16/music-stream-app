@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+// src/screens/PlayScreen.tsx
+import React, { useEffect, useState, useCallback, useRef } from "react";
+import { withFullUrl, ensureHttpUrl } from "../utils/url";
 import {
   View,
   Text,
@@ -13,24 +15,64 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { Audio } from "expo-av";
+import { activeSoundRef, stopActiveSound } from "../player/manager";
+import { usePlayer } from "../player/store";
 
 const { width } = Dimensions.get("window");
 
-export default function PlayScreen({ route, navigation }: any) {
-  const song = route?.params?.song || {
-    title: "Let You Free",
-    artist: "Ryan Young",
-    image: "http://192.168.1.66:4000/image/ShapeOfYou.png",
-    url: "http://192.168.1.66:4000/music/ShapeOfYou.mp3",
-  };
+type Song = {
+  _id?: string;
+  title: string;
+  artist: string;
+  image: string;
+  url: string;
+};
 
+type Props = {
+  route: {
+    params?: {
+      song?: Song;
+      queue?: Song[];
+      index?: number;
+    };
+  };
+  navigation: any;
+};
+
+export default function PlayScreen({ route, navigation }: Props) {
+  const player = usePlayer();
+
+  // ------ Params & queue ------
+  const rawSong =
+    route?.params?.song ||
+    ({
+      title: "Let You Free",
+      artist: "Ryan Young",
+      image: "http://192.168.1.54:4000/image/ShapeOfYou.png",
+      url: "http://192.168.1.54:4000/music/ShapeOfYou.mp3",
+    } as Song);
+
+  const initialQueue = (route?.params?.queue || [rawSong]).map(withFullUrl);
+  const initialIndex =
+    typeof route?.params?.index === "number" ? route.params!.index! : 0;
+
+  const [queue] = useState<Song[]>(initialQueue);
+  const [currentIndex, setCurrentIndex] = useState<number>(
+    Math.min(Math.max(initialIndex, 0), initialQueue.length - 1)
+  );
+  const [current, setCurrent] = useState<Song>(initialQueue[currentIndex]);
+
+  // ------ Audio state ------
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [position, setPosition] = useState(0);
-  const [duration, setDuration] = useState(1); // tránh chia 0
+  const [duration, setDuration] = useState(1);
 
-  // ✅ Cấu hình Audio Mode cho iOS
+  // tránh race khi next/prev nhanh
+  const loadingRef = useRef(false);
+
+  // ------ Audio mode ------
   useEffect(() => {
     (async () => {
       try {
@@ -38,6 +80,16 @@ export default function PlayScreen({ route, navigation }: any) {
           allowsRecordingIOS: false,
           staysActiveInBackground: false,
           playsInSilentModeIOS: true,
+          // ✅ Tương thích nhiều SDK (enum mới/cũ)
+          interruptionModeIOS:
+            (Audio as any).IOSAudioInterruptionMode?.DoNotMix ??
+            (Audio as any).INTERRUPTION_MODE_IOS_DO_NOT_MIX ??
+            1,
+          interruptionModeAndroid:
+            (Audio as any).AndroidAudioInterruptionMode?.DoNotMix ??
+            (Audio as any).INTERRUPTION_MODE_ANDROID_DO_NOT_MIX ??
+            1,
+          shouldDuckAndroid: true,
         });
       } catch (e) {
         console.log("Lỗi cấu hình AudioMode:", e);
@@ -46,101 +98,189 @@ export default function PlayScreen({ route, navigation }: any) {
 
     return () => {
       if (sound) {
-        sound.unloadAsync();
+        sound.stopAsync().catch(() => {});
+        sound.unloadAsync().catch(() => {});
+      }
+      if (activeSoundRef.sound === sound) {
+        activeSoundRef.sound = null;
       }
     };
-  }, [sound]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // 🎧 Hàm phát / tạm dừng nhạc
-  async function playSound() {
-    try {
-      if (sound) {
-        if (isPlaying) {
-          await sound.pauseAsync();
-          setIsPlaying(false);
-        } else {
-          await sound.playAsync();
-          setIsPlaying(true);
+  // ------ Helper: load & play 1 bài ------
+  const onPlaybackStatusUpdate = (status: any) => {
+    if (
+      status?.isLoaded &&
+      typeof status.positionMillis === "number" &&
+      typeof status.durationMillis === "number"
+    ) {
+      setPosition(status.positionMillis);
+      setDuration(status.durationMillis || 1);
+      setIsPlaying(!!status.isPlaying);
+
+      // đồng bộ MiniPlayer
+      player.updateProgress({
+        position: status.positionMillis,
+        duration: status.durationMillis || 1,
+        isPlaying: !!status.isPlaying,
+      });
+
+      if (status.didJustFinish) handleNext();
+    }
+  };
+
+  const loadAndPlay = useCallback(
+    async (song: Song, autoPlay = true) => {
+      if (loadingRef.current) return;
+      loadingRef.current = true;
+      setLoading(true);
+      try {
+        // Dừng mọi sound đang phát ở bất kỳ màn nào
+        await stopActiveSound();
+
+        // Dọn sound cũ của màn này (nếu còn)
+        if (sound) {
+          await sound.unloadAsync().catch(() => {});
+          setSound(null);
         }
-      } else {
-        setLoading(true);
-        console.log("▶ Đang tải nhạc từ:", song.url);
+
+        const normalized = withFullUrl(song);
+        const streamUrl = ensureHttpUrl(normalized.url);
+        if (!streamUrl) {
+          Alert.alert("URL không hợp lệ", JSON.stringify(normalized, null, 2));
+          setIsPlaying(false);
+          return;
+        }
 
         const { sound: newSound } = await Audio.Sound.createAsync(
-          { uri: song.url },
-          { shouldPlay: true },
+          { uri: streamUrl },
+          { shouldPlay: autoPlay },
           onPlaybackStatusUpdate
         );
 
-        const status = await newSound.getStatusAsync();
-        if (status.isLoaded) setDuration(status.durationMillis || 1);
+        const st: any = await newSound.getStatusAsync();
+        setDuration(st?.durationMillis || 1);
+        setPosition(st?.positionMillis || 0);
 
         setSound(newSound);
-        setIsPlaying(true);
-      }
-    } catch (error: any) {
-      console.error("❌ Lỗi phát nhạc:", error);
-      Alert.alert(
-        "Lỗi phát nhạc",
-        "Không thể phát bài hát. Kiểm tra lại kết nối hoặc URL."
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
+        activeSoundRef.sound = newSound; // gắn sound hiện hành toàn cục
+        setIsPlaying(!!autoPlay);
 
-  // 🕐 Cập nhật tiến trình phát nhạc
-  const onPlaybackStatusUpdate = (status: any) => {
-    if (status.isLoaded && status.positionMillis && status.durationMillis) {
-      setPosition(status.positionMillis);
-      setDuration(status.durationMillis);
-      if (status.didJustFinish) setIsPlaying(false);
+        // cập nhật MiniPlayer ngay khi load
+        player.setNowPlaying({
+          song: normalized,
+          queue,
+          index: currentIndex,
+          isPlaying: !!autoPlay,
+          position: st?.positionMillis || 0,
+          duration: st?.durationMillis || 1,
+        });
+      } catch (e) {
+        console.error("❌ loadAndPlay error:", e);
+        setIsPlaying(false);
+        Alert.alert("Lỗi phát nhạc", "Không thể phát bài hát hiện tại.");
+      } finally {
+        setLoading(false);
+        loadingRef.current = false;
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sound, currentIndex, queue]
+  );
+
+  // Lần đầu & khi đổi index
+  useEffect(() => {
+    setCurrent(queue[currentIndex]);
+    // hiển thị ngay trên MiniPlayer trước khi play xong
+    player.setNowPlaying({ song: queue[currentIndex], queue, index: currentIndex });
+    loadAndPlay(queue[currentIndex], true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex]);
+
+  useEffect(() => {
+    setCurrent(queue[currentIndex]);
+    player.setNowPlaying({ song: queue[currentIndex], queue, index: currentIndex });
+    loadAndPlay(queue[currentIndex], true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ------ Controls ------
+  const togglePlay = async () => {
+    try {
+      if (!sound) {
+        await loadAndPlay(current, true);
+        return;
+      }
+      const st: any = await sound.getStatusAsync();
+      if (!st.isLoaded) {
+        await loadAndPlay(current, true);
+        return;
+      }
+      if (st.isPlaying) {
+        await sound.pauseAsync();
+        setIsPlaying(false);
+        player.updateProgress({ isPlaying: false });
+      } else {
+        await sound.playAsync();
+        setIsPlaying(true);
+        player.updateProgress({ isPlaying: true });
+      }
+    } catch (e) {
+      console.error("togglePlay error:", e);
     }
   };
 
-  // 🔁 Khi kéo slider
   const onSlideComplete = async (value: number) => {
     if (sound) {
       await sound.setPositionAsync(value);
+      setPosition(value);
+      player.updateProgress({ position: value });
     }
   };
 
-  // 🧮 Format thời gian (mm:ss)
+  const handleNext = useCallback(() => {
+    if (!queue.length) return;
+    setCurrentIndex((i) => (i + 1) % queue.length);
+  }, [queue.length]);
+
+  const handlePrev = useCallback(async () => {
+    if (!queue.length) return;
+    if (position > 3000 && sound) {
+      await sound.setPositionAsync(0);
+      setPosition(0);
+      player.updateProgress({ position: 0 });
+      return;
+    }
+    setCurrentIndex((i) => (i - 1 + queue.length) % queue.length);
+  }, [queue.length, position, sound, player]);
+
+  // ------ UI ------
   const formatTime = (millis: number) => {
-    const totalSeconds = Math.floor(millis / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+    const total = Math.max(0, Math.floor(millis / 1000));
+    const m = Math.floor(total / 60);
+    const s = total % 60;
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Nền mờ từ ảnh bài hát */}
-      <Image
-        source={{ uri: song.image }}
-        style={StyleSheet.absoluteFillObject}
-        blurRadius={25}
-      />
-
-      {/* Lớp phủ đen nhẹ */}
+      {/* Nền mờ */}
+      <Image source={{ uri: current.image }} style={StyleSheet.absoluteFillObject} blurRadius={25} />
       <View style={styles.overlay} />
 
-      {/* Nội dung chính */}
       <View style={styles.content}>
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={28} color="#fff" />
         </TouchableOpacity>
 
         {/* Ảnh bìa */}
-        <Image source={{ uri: song.image }} style={styles.cover} />
+        <Image source={{ uri: current.image }} style={styles.cover} />
 
-        {/* Thông tin bài hát */}
+        {/* Thông tin */}
         <View style={styles.info}>
-          <Text style={styles.title}>{song.title}</Text>
-          <Text style={styles.artist}>{song.artist}</Text>
+          <Text style={styles.title}>{current.title}</Text>
+          <Text style={styles.artist}>{current.artist}</Text>
         </View>
 
         {/* Thanh tiến trình */}
@@ -161,44 +301,42 @@ export default function PlayScreen({ route, navigation }: any) {
           </View>
         </View>
 
-        {/* Nút phát / dừng */}
-        {loading ? (
-          <ActivityIndicator size="large" color="#fff" />
-        ) : (
-          <TouchableOpacity style={styles.playBtn} onPress={playSound}>
-            <Ionicons
-              name={isPlaying ? "pause" : "play"}
-              size={42}
-              color="#111827"
-            />
+        {/* Điều khiển: Prev / Play-Pause / Next */}
+        <View style={styles.controlsRow}>
+          <TouchableOpacity
+            style={[styles.ctrlBtn, queue.length <= 1 && { opacity: 0.6 }]}
+            onPress={handlePrev}
+            disabled={queue.length <= 1 || loading}
+          >
+            <Ionicons name="play-skip-back" size={34} color="#fff" />
           </TouchableOpacity>
-        )}
+
+          {loading ? (
+            <ActivityIndicator size="large" color="#fff" />
+          ) : (
+            <TouchableOpacity style={styles.playBtn} onPress={togglePlay}>
+              <Ionicons name={isPlaying ? "pause" : "play"} size={42} color="#111827" />
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
+            style={[styles.ctrlBtn, queue.length <= 1 && { opacity: 0.6 }]}
+            onPress={handleNext}
+            disabled={queue.length <= 1 || loading}
+          >
+            <Ionicons name="play-skip-forward" size={34} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.45)",
-  },
-  content: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 40,
-  },
-  backBtn: {
-    position: "absolute",
-    top: 60,
-    left: 25,
-    zIndex: 10,
-  },
+  container: { flex: 1, backgroundColor: "#000" },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.45)" },
+  content: { flex: 1, alignItems: "center", justifyContent: "space-between", paddingVertical: 40 },
+  backBtn: { position: "absolute", top: 60, left: 25, zIndex: 10 },
   cover: {
     width: width * 0.7,
     height: width * 0.7,
@@ -209,34 +347,20 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
   },
-  info: {
-    alignItems: "center",
-    marginTop: 40,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#fff",
-    textAlign: "center",
-  },
-  artist: {
-    fontSize: 16,
-    color: "#ccc",
-    marginTop: 6,
-  },
-  sliderContainer: {
-    alignItems: "center",
-    marginTop: 20,
-  },
-  timeRow: {
+  info: { alignItems: "center", marginTop: 40 },
+  title: { fontSize: 24, fontWeight: "700", color: "#fff", textAlign: "center" },
+  artist: { fontSize: 16, color: "#ccc", marginTop: 6 },
+  sliderContainer: { alignItems: "center", marginTop: 20 },
+  timeRow: { flexDirection: "row", justifyContent: "space-between", width: width * 0.85 },
+  time: { color: "#aaa", fontSize: 13 },
+  controlsRow: {
+    width: width * 0.9,
     flexDirection: "row",
     justifyContent: "space-between",
-    width: width * 0.85,
+    alignItems: "center",
+    marginBottom: 32,
   },
-  time: {
-    color: "#aaa",
-    fontSize: 13,
-  },
+  ctrlBtn: { padding: 10 },
   playBtn: {
     backgroundColor: "#fff",
     borderRadius: 50,
@@ -244,7 +368,6 @@ const styles = StyleSheet.create({
     height: 80,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 40,
     shadowColor: "#000",
     shadowOpacity: 0.3,
     shadowRadius: 8,

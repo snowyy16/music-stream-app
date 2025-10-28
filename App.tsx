@@ -1,22 +1,32 @@
+// App.tsx
+import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { View, StyleSheet } from "react-native";
 import AppNavigator from "./src/navigation/AppNavigator";
+
+// ⬇️ thêm 2 import này
+import { PlayerProvider } from "./src/player/store";
+import MiniPlayer from "./src/components/MiniPlayer";
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <AppNavigator />
-    </NavigationContainer>
+    <PlayerProvider>
+      <NavigationContainer>
+        <View style={styles.appRoot}>
+          <StatusBar style="light" />
+          <AppNavigator />
+
+          {/* ⬇️ MiniPlayer luôn hiển thị ở cạnh dưới, đè lên các màn */}
+          <MiniPlayer />
+        </View>
+      </NavigationContainer>
+    </PlayerProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  appRoot: {
     flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
   },
 });

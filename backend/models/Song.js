@@ -5,6 +5,7 @@ const songSchema = new mongoose.Schema({
   artist: String,
   image: String,
   url: String,
+  category : String,
 });
 
 export default mongoose.model("Song", songSchema);

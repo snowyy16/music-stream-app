@@ -11,7 +11,6 @@ import type {
 } from "../types/navigation";
 
 import LoginScreen from "../screens/LoginScreen";
-// import RegisterScreen from "../screens/RegisterScreen";
 import HomeScreen from "../screens/HomeScreen";
 import FeedScreen from "../screens/FeedScreen";
 
@@ -30,10 +29,11 @@ function AuthStackNavigator() {
   return (
     <AuthStack.Navigator screenOptions={{ headerShown: false }}>
       <AuthStack.Screen name="Login" component={LoginScreen} />
-      {/* <AuthStack.Screen name="Register" component={RegisterScreen} /> */}
+      
     </AuthStack.Navigator>
   );
 }
+
 
 // Bottom Tabs cho Home
 function MainTabs() {

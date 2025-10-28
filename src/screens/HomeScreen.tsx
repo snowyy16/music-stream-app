@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from "react";
+import { withFullUrl } from "../utils/url";
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Image,
   ActivityIndicator,
   FlatList,
+  RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { BASE_URL } from "../config";
-import { RefreshControl } from "react-native";
 
 interface Song {
   _id: string;
@@ -24,12 +24,9 @@ interface Song {
   downloaded?: boolean;
 }
 
-
-
 // ===== Banner Premium =====
 const PremiumBanner = () => {
   const navigation = useNavigation<any>();
-
   return (
     <TouchableOpacity
       style={styles.premiumBanner}
@@ -58,29 +55,29 @@ export default function HomeScreen() {
 
   const API_URL = `${BASE_URL}/api/songs`;
 
+  // ---- Fetch danh sách + NORMALIZE URL ngay sau khi nhận dữ liệu ----
   useEffect(() => {
     const controller = new AbortController();
     const signal = controller.signal;
 
     const fetchSongs = async () => {
       try {
-        // Đặt timeout 5 giây
         const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const res = await fetch(API_URL, { signal });
+        clearTimeout(timeoutId);
 
-        const response = await fetch(API_URL, { signal });
-        clearTimeout(timeoutId); // Xóa timeout nếu thành công
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        const data: Song[] = await res.json();
 
-        const data = await response.json();
-        setSongs(data);
-      } catch (error: any) {
-        if (error.name === 'AbortError') {
-          console.error("❌ Lỗi tải danh sách bài hát: Yêu cầu bị hết giờ (Timed Out)");
+        // ⚠️ Chuẩn hoá image/url thành HTTP đầy đủ (kèm encode) ngay tại đây
+        const normalized = data.map(withFullUrl);
+        setSongs(normalized.slice(0, 10));
+      } catch (err: any) {
+        if (err.name === "AbortError") {
+          console.error("❌ Lỗi tải danh sách bài hát: Timed out (5s).");
         } else {
-          console.error("❌ Lỗi tải danh sách bài hát:", error);
+          console.error("❌ Lỗi tải danh sách bài hát:", err);
         }
       } finally {
         setLoading(false);
@@ -88,12 +85,22 @@ export default function HomeScreen() {
     };
 
     fetchSongs();
-
-    // Cleanup function
-    return () => {
-      controller.abort(); // Đảm bảo hủy yêu cầu nếu component bị unmount
-    };
+    return () => controller.abort();
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const res = await fetch(API_URL);
+      const data: Song[] = await res.json();
+      // Normalize khi refresh
+      setSongs(data.map(withFullUrl));
+    } catch (err) {
+      console.error("❌ Lỗi refresh danh sách bài hát:", err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -102,21 +109,6 @@ export default function HomeScreen() {
       </View>
     );
   }
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    setLoading(true);  // cho chắc chắn hiển thị lại ActivityIndicator
-    try {
-      const response = await fetch(API_URL);
-      const data = await response.json();
-      setSongs(data);
-    } catch (err) {
-      console.error("❌ Lỗi refresh danh sách bài hát:", err);
-    } finally {
-      setRefreshing(false);
-      setLoading(false);
-    }
-  };
 
   return (
     <FlatList
@@ -147,11 +139,15 @@ export default function HomeScreen() {
           <Text style={styles.sectionTitle}>Đang thịnh hành 🔥</Text>
         </>
       }
-      renderItem={({ item }: { item: Song }) => (
+      renderItem={({ item, index }: { item: Song; index: number }) => (
         <TouchableOpacity
           style={styles.songRow}
           onPress={() =>
-            navigation.getParent()?.navigate("PlayScreen", { song: item })
+            navigation.navigate("PlayScreen", {
+              song: item,
+              queue: songs,   // mảng đã normalize
+              index,          // vị trí bài được bấm
+            })
           }
         >
           <Image source={{ uri: item.image }} style={styles.songImage} />
@@ -170,7 +166,7 @@ export default function HomeScreen() {
           >
             <Text style={styles.feedButtonText}>🎧 Đi đến Feed</Text>
           </TouchableOpacity>
-          <View style={{ height: 40 }} /> {/* khoảng trống cuối */}
+          <View style={{ height: 40 }} />
         </>
       }
       ListEmptyComponent={
@@ -290,18 +286,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     elevation: 8,
   },
-  bannerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  bannerTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "white",
-  },
-  bannerSubtitle: {
-    fontSize: 13,
-    color: "#DDD",
-    marginTop: 2,
-  },
+  bannerContent: { flexDirection: "row", alignItems: "center" },
+  bannerTitle: { fontSize: 16, fontWeight: "bold", color: "white" },
+  bannerSubtitle: { fontSize: 13, color: "#DDD", marginTop: 2 },
 });
