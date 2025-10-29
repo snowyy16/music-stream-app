@@ -28,7 +28,6 @@ app.use(
   })
 );
 
-
 // Public thư mục chứa ảnh
 app.use("/image", express.static(path.join(__dirname, "image")));
 
@@ -36,7 +35,7 @@ app.use("/image", express.static(path.join(__dirname, "image")));
 app.listen(process.env.PORT || 4000, "0.0.0.0", () => {
   console.log("🚀 Server chạy tại:");
   console.log("👉 http://localhost:4000");
-  console.log("👉 http://192.168.1.66:4000");
+  console.log("👉 http://192.168.1.22:4000");
 });
 
 // MongoDB
