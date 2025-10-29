@@ -272,8 +272,9 @@ export default function LibraryScreen() {
     );
   }
 
-  if (activeTab === "Playlists") {
-    return (
+if (activeTab === "Playlists") {
+  return (
+    <>
       <FlatList
         style={styles.container}
         data={MOCK_PLAYLISTS}
@@ -281,42 +282,25 @@ export default function LibraryScreen() {
         ListHeaderComponent={
           <>
             {Header}
-            <Text style={styles.sectionHint}>Playlists (demo)</Text>
+            <Text style={styles.sectionHint}>Your playlists</Text>
           </>
         }
         renderItem={renderPlaylistItem}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 140 }}
       />
-    );
-  }
-  return (
-  <>
-    <FlatList
-      style={styles.container}
-      data={MOCK_PLAYLISTS}
-      keyExtractor={(it) => it._id}
-      ListHeaderComponent={
-        <>
-          {Header}
-          <Text style={styles.sectionHint}>Your playlists</Text>
-        </>
-      }
-      renderItem={renderPlaylistItem}
-      ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-      contentContainerStyle={{ paddingBottom: 140 }}
-    />
 
-    <TouchableOpacity
-      style={styles.fab}
-      activeOpacity={0.8}
-      onPress={() => navigation.navigate("AddPlaylistScreen")}
-    >
-      <Ionicons name="add" size={28} color="#fff" />
-    </TouchableOpacity>
-  </>
-);
-
+      {/* ✅ Floating Button */}
+      <TouchableOpacity
+        style={styles.fab}
+        activeOpacity={0.8}
+        onPress={() => navigation.navigate("AddPlaylistScreen")}
+      >
+        <Ionicons name="add" size={28} color="#fff" />
+      </TouchableOpacity>
+    </>
+  );
+}
 
   if (activeTab === "Albums") {
     return (
