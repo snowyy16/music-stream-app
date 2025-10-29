@@ -1,27 +1,23 @@
 import express from "express";
-import mongoose from "mongoose";
-import cors from "cors";
 import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+const router = express.Router();
 
-// Kết nối Mongo
-mongoose.connect("mongodb://127.0.0.1:27017/musicdb");
-
-// Schema người dùng
+// ✅ Schema người dùng
 const userSchema = new mongoose.Schema({
   username: String,
   email: { type: String, unique: true },
   password: String,
 });
+
 const User = mongoose.model("User", userSchema);
 
-// Đăng ký
-app.post("/api/auth/register", async (req, res) => {
+// ✅ Đăng ký
+router.post("/register", async (req, res) => {
   try {
     const { username, email, password } = req.body;
+
     const exist = await User.findOne({ email });
     if (exist) return res.status(400).json({ message: "Email đã tồn tại" });
 
@@ -31,14 +27,16 @@ app.post("/api/auth/register", async (req, res) => {
 
     res.json({ message: "Đăng ký thành công" });
   } catch (err) {
+    console.error("❌ Lỗi đăng ký:", err);
     res.status(500).json({ message: err.message });
   }
 });
 
 // ✅ Đăng nhập
-app.post("/api/auth/login", async (req, res) => {
+router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+
     const user = await User.findOne({ email });
     if (!user)
       return res.status(400).json({ message: "Email không tồn tại" });
@@ -49,8 +47,10 @@ app.post("/api/auth/login", async (req, res) => {
 
     res.json({ message: "Đăng nhập thành công", user });
   } catch (err) {
+    console.error("❌ Lỗi đăng nhập:", err);
     res.status(500).json({ message: err.message });
   }
 });
 
-app.listen(4000, () => console.log("✅ Server chạy tại cổng 4000"));
+// ✅ Export mặc định (quan trọng)
+export default router;
