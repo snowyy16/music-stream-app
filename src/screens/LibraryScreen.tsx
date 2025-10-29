@@ -89,7 +89,7 @@ const MOCK_ARTISTS = [
 
 export default function LibraryScreen() {
   const navigation = useNavigation<any>();
-  const [activeTab, setActiveTab] = useState<TabKey>("Songs");
+  const [activeTab, setActiveTab] = useState<TabKey>("Playlists");
 
   // Songs
   const [songs, setSongs] = useState<Song[]>([]);
@@ -290,6 +290,33 @@ export default function LibraryScreen() {
       />
     );
   }
+  return (
+  <>
+    <FlatList
+      style={styles.container}
+      data={MOCK_PLAYLISTS}
+      keyExtractor={(it) => it._id}
+      ListHeaderComponent={
+        <>
+          {Header}
+          <Text style={styles.sectionHint}>Your playlists</Text>
+        </>
+      }
+      renderItem={renderPlaylistItem}
+      ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+      contentContainerStyle={{ paddingBottom: 140 }}
+    />
+
+    <TouchableOpacity
+      style={styles.fab}
+      activeOpacity={0.8}
+      onPress={() => navigation.navigate("AddPlaylistScreen")}
+    >
+      <Ionicons name="add" size={28} color="#fff" />
+    </TouchableOpacity>
+  </>
+);
+
 
   if (activeTab === "Albums") {
     return (
@@ -535,4 +562,21 @@ const styles = StyleSheet.create({
     fontWeight: "600", // Thêm độ đậm
     paddingHorizontal: 4, // Cân bằng với padding của container
   },
+  fab: {
+  position: "absolute",
+  right: 20,
+  bottom: 90, // nằm trên thanh tab bar một chút
+  backgroundColor: "#111827",
+  width: 60,
+  height: 60,
+  borderRadius: 30,
+  justifyContent: "center",
+  alignItems: "center",
+  shadowColor: "#000",
+  shadowOpacity: 0.3,
+  shadowRadius: 6,
+  shadowOffset: { width: 0, height: 3 },
+  elevation: 6,
+},
+
 });

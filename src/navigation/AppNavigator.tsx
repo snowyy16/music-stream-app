@@ -16,6 +16,8 @@ import HomeScreen from "../screens/HomeScreen";
 import FeedScreen from "../screens/FeedScreen";
 import PlaylistDetail from "../screens/PlaylistDetail"; // ⬅️ thêm
 import SettingsScreen from "../screens/SettingsScreen";
+import AddPlaylistScreen from "../screens/AddPlaylistScreen";
+
 
 
 import LibraryScreen from "../screens/LibraryScreen";
@@ -101,6 +103,12 @@ export default function AppNavigator() {
         component={SettingsScreen}
         options={{ headerShown: false }}
       />
+      <RootStack.Screen
+        name="AddPlaylistScreen"
+        component={AddPlaylistScreen}
+        options={{ headerShown: false }}
+      />
+
 
     </RootStack.Navigator>
   );

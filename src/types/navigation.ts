@@ -8,6 +8,7 @@ export type RootStackParamList = {
   PlayScreen: { song?: any };
   PlaylistDetail: { song?: any };
   Settings: undefined;
+  AddPlaylistScreen : undefined;
 };
 export type AuthStackParamList = {
   Login: undefined;
