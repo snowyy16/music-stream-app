@@ -145,7 +145,12 @@ export default function SearchScreen() {
               <TouchableOpacity
                 key={song._id}
                 style={styles.songRow}
-                onPress={() => navigation.navigate("PlayScreen", { song })} // song đã normalize
+                onPress={() =>
+                  navigation.navigate("PlayScreen", {
+                    queue: songs, // danh sách đang hiển thị (đã normalize)
+                    index: songs.findIndex((s) => s._id === song._id), // vị trí bài được bấm
+                  })
+                }
               >
                 <Image source={{ uri: song.image }} style={styles.songImage} />
                 <View style={styles.songInfo}>
@@ -160,6 +165,7 @@ export default function SearchScreen() {
               Không tìm thấy bài hát nào.
             </Text>
           )}
+
         </>
       ) : (
         <>
