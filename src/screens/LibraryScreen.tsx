@@ -148,21 +148,6 @@ export default function LibraryScreen() {
             );
           })}
         </View>
-
-        {/* User info */}
-        <View style={styles.userRow}>
-          <Image
-            source={{ uri: "https://randomuser.me/api/portraits/women/40.jpg" }}
-            style={styles.userAvatar}
-          />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.userName}>Mer Watson</Text>
-            <Text style={styles.userSubtitle}>8 • 1.234K Followers</Text>
-          </View>
-          <TouchableOpacity style={styles.followBtn}>
-            <Text style={styles.followText}>Follow</Text>
-          </TouchableOpacity>
-        </View>
       </View>
     ),
     [activeTab]
@@ -389,14 +374,14 @@ const styles = StyleSheet.create({
   // Tabs
   tabs: {
     flexDirection: "row",
-    marginBottom: 20, // Tăng khoảng cách dưới tabs
-    // Thêm scroll ngang nếu cần nhiều tab hơn, nhưng tạm thời giữ nguyên
+    marginBottom: 20, 
+    
   },
   tab: {
-    backgroundColor: "#E5E7EB", // Nền tab bình thường nhạt hơn
-    paddingVertical: 8, // Tăng padding dọc
-    paddingHorizontal: 16, // Tăng padding ngang
-    borderRadius: 20, // Bo tròn nhiều hơn
+    backgroundColor: "#E5E7EB", 
+    paddingVertical: 8, 
+    paddingHorizontal: 13, 
+    borderRadius: 20, 
     marginRight: 10,
     position: "relative",
   },

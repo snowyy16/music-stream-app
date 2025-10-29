@@ -69,7 +69,7 @@ export default function HomeScreen() {
             {/* Ảnh đại diện làm nút kích hoạt Menu */}
             <Image
               style={styles.avatar}
-              source={{ uri: "https://picsum.photos/id/1027/100/100" }}
+              source={{ uri: "https://cdn-icons-png.flaticon.com/512/4825/4825038.png" }}
             />
           </MenuTrigger>
 
