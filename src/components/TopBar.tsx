@@ -2,7 +2,7 @@
 import React from "react";
 import { View, Image, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import colors from "../theme/color";
+
 
 export default function TopBar() {
   return (

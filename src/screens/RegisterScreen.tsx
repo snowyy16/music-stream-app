@@ -59,12 +59,7 @@ export default function RegisterScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <Image
-        source={{
-          uri: "https://storage.googleapis.com/pr-newsroom-wp/1/2023/05/Spotify_Primary_Logo_RGB_Green.png",
-        }}
-        style={styles.logo}
-      />
+      <Image source={require("../assets/AudioLogo.png")} style={styles.logo} />
 
       <Text style={styles.title}>Tạo tài khoản mới</Text>
 
@@ -126,8 +121,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   logo: {
-    width: 90,
-    height: 90,
+    width: 200,
+    height: 150,
     marginBottom: 30,
   },
   title: {

@@ -29,8 +29,7 @@ export default function HomeScreen() {
   const { user, logout } = useAuth();
   const displayedUsername = user ? user.username : "Guest";
   const handleLogout = () => {
-    logout(); // Xóa thông tin người dùng khỏi Context
-    // Chuyển người dùng về màn hình đăng nhập (AuthStack)
+    logout();
     navigation.reset({
       index: 0,
       routes: [{ name: "AuthStack" }],
@@ -38,17 +37,17 @@ export default function HomeScreen() {
   };
 
   const handleSettings = () => {
-    // Logic điều hướng đến màn hình Settings
-    console.log("Điều hướng đến Settings");
-    // navigation.navigate('SettingsScreen');
+    navigation.navigate("Settings");
   };
+
+
   useEffect(() => {
     fetch(`${BASE_URL}/api/songs`)
       .then((res) => res.json())
       .then((data) => {
         setSongs(data.map(withFullUrl).slice(0, 10));
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, []);
 
@@ -76,23 +75,43 @@ export default function HomeScreen() {
 
           <MenuOptions
             customStyles={{
-              // Sử dụng marginTop âm để menu thả xuống không bị lệch quá xa
               optionsContainer: {
-                ...styles.menuOptionsContainer,
+                backgroundColor: "#1E1E1E",
+                borderRadius: 12,
+                paddingVertical: 8,
                 marginTop: 50,
                 marginRight: 10,
-                width: 150,
-                padding: 5,
-                borderRadius: 8,
+                width: 160,
+                shadowColor: "#000",
+                shadowOpacity: 0.2,
+                shadowOffset: { width: 0, height: 3 },
+                shadowRadius: 5,
+                elevation: 5,
               },
             }}
           >
-            {/* Item Cài đặt */}
-            <MenuOption onSelect={handleSettings} text="Cài đặt" />
+            <MenuOption
+              onSelect={handleSettings}
+              customStyles={{
+                optionWrapper: styles.menuItem,
+                optionText: styles.menuText,
+              }}
+            >
+              <Ionicons name="settings-outline" size={18} color="#1DB954" />
+              <Text style={styles.menuText}>  Cài đặt</Text>
+            </MenuOption>
 
-            {/* Item Đăng xuất */}
-            <MenuOption onSelect={handleLogout} text="Đăng xuất" />
+            <MenuOption
+              onSelect={handleLogout}
+              customStyles={{
+                optionWrapper: styles.menuItem,
+              }}
+            >
+              <Ionicons name="log-out-outline" size={18} color="#FF4C4C" />
+              <Text style={[styles.menuText, { color: "#FF4C4C" }]}>  Đăng xuất</Text>
+            </MenuOption>
           </MenuOptions>
+
         </Menu>
         {/* ĐÃ XÓA <TouchableOpacity> CHỨA ICON GỐC */}
       </View>
@@ -301,4 +320,16 @@ const styles = StyleSheet.create({
     padding: 5,
     borderRadius: 8,
   },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  menuText: {
+    fontSize: 15,
+    color: "#E5E7EB",
+    fontWeight: "500",
+  },
+
 });

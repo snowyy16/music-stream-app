@@ -15,6 +15,7 @@ import LoginScreen from "../screens/LoginScreen";
 import HomeScreen from "../screens/HomeScreen";
 import FeedScreen from "../screens/FeedScreen";
 import PlaylistDetail from "../screens/PlaylistDetail"; // ⬅️ thêm
+import SettingsScreen from "../screens/SettingsScreen";
 
 
 import LibraryScreen from "../screens/LibraryScreen";
@@ -38,8 +39,6 @@ function AuthStackNavigator() {
   );
 }
 
-
-// Bottom Tabs cho Home
 function MainTabs() {
   return (
     <Tab.Navigator
@@ -93,10 +92,16 @@ export default function AppNavigator() {
       />
       <RootStack.Screen name="PlayScreen" component={PlayScreen} />
       <RootStack.Screen
-       name="PlaylistDetail"
-       component={PlaylistDetail}
-      options={{ headerShown: false }}
-  />
+        name="PlaylistDetail"
+        component={PlaylistDetail}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{ headerShown: false }}
+      />
+
     </RootStack.Navigator>
   );
 }

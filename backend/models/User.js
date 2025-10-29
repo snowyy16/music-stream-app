@@ -1,12 +1,14 @@
 import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema(
-  {
-    username: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+const userSchema = new mongoose.Schema({
+  username: String,
+  email: { type: String, unique: true },
+  password: String,
+  avatar: {
+    type: String,
+    default: "https://picsum.photos/200/200",
   },
-  { timestamps: true }
-);
+}, { timestamps: true });
+
 
 export default mongoose.model("User", userSchema);

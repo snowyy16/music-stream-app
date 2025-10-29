@@ -7,6 +7,7 @@ export type RootStackParamList = {
   CategoryDetail: { categoryName: string };
   PlayScreen: { song?: any };
   PlaylistDetail: { song?: any };
+  Settings: undefined;
 };
 export type AuthStackParamList = {
   Login: undefined;
