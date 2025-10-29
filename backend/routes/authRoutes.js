@@ -1,25 +1,11 @@
 import express from "express";
-import mongoose from "mongoose";
-import cors from "cors";
 import bcrypt from "bcryptjs";
+import User from "../models/User.js";
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-// Kết nối Mongo
-mongoose.connect("mongodb://127.0.0.1:27017/musicdb");
-
-// Schema người dùng
-const userSchema = new mongoose.Schema({
-  username: String,
-  email: { type: String, unique: true },
-  password: String,
-});
-const User = mongoose.model("User", userSchema);
+const router = express.Router(); // <-- BẮT BUỘC PHẢI CÓ DÒNG NÀY
 
 // Đăng ký
-app.post("/api/auth/register", async (req, res) => {
+router.post("/register", async (req, res) => {
   try {
     const { username, email, password } = req.body;
     const exist = await User.findOne({ email });
@@ -35,17 +21,15 @@ app.post("/api/auth/register", async (req, res) => {
   }
 });
 
-// ✅ Đăng nhập
-app.post("/api/auth/login", async (req, res) => {
+// Đăng nhập
+router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    if (!user)
-      return res.status(400).json({ message: "Email không tồn tại" });
+    if (!user) return res.status(400).json({ message: "Email không tồn tại" });
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(400).json({ message: "Mật khẩu sai" });
+    const isMatch = password === user.password;
+    if (!isMatch) return res.status(400).json({ message: "Mật khẩu sai" });
 
     res.json({ message: "Đăng nhập thành công", user });
   } catch (err) {
@@ -53,4 +37,4 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
-app.listen(4000, () => console.log("✅ Server chạy tại cổng 4000"));
+export default router; // ✅ Export đúng

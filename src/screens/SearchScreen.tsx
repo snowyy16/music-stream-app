@@ -15,6 +15,8 @@ import { useNavigation } from "@react-navigation/native";
 import { BASE_URL } from "../config";
 import CategoryCard from "../components/CategoryCard";
 import { withFullUrl } from "../utils/url";
+import { useAuth } from "../context/AuthContext";
+import { MenuTrigger } from "react-native-popup-menu";
 
 interface Song {
   _id: string;
@@ -113,14 +115,23 @@ export default function SearchScreen() {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Tìm kiếm</Text>
-        <TouchableOpacity>
-          <Ionicons name="person-circle-outline" size={32} color="#111827" />
-        </TouchableOpacity>
+        <MenuTrigger>
+          {/* Ảnh đại diện làm nút kích hoạt Menu */}
+          <Image
+            style={styles.avatar}
+            source={{ uri: "https://picsum.photos/id/1027/100/100" }}
+          />
+        </MenuTrigger>
       </View>
 
       {/* Input Tìm kiếm */}
       <View style={styles.searchBox}>
-        <Ionicons name="search" size={20} color="#6B7280" style={styles.searchIcon} />
+        <Ionicons
+          name="search"
+          size={20}
+          color="#6B7280"
+          style={styles.searchIcon}
+        />
         <TextInput
           style={styles.input}
           placeholder="Tìm bài hát, nghệ sĩ hoặc album..."
@@ -161,11 +172,12 @@ export default function SearchScreen() {
               </TouchableOpacity>
             ))
           ) : (
-            <Text style={{ textAlign: "center", color: "#6B7280", marginTop: 10 }}>
+            <Text
+              style={{ textAlign: "center", color: "#6B7280", marginTop: 10 }}
+            >
               Không tìm thấy bài hát nào.
             </Text>
           )}
-
         </>
       ) : (
         <>
@@ -187,29 +199,58 @@ export default function SearchScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", paddingHorizontal: 20, paddingTop: 50 },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    paddingHorizontal: 20,
+    paddingTop: 50,
+  },
   header: {
-    flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
   },
   title: { fontSize: 32, fontWeight: "bold", color: "#111827" },
   searchBox: {
-    flexDirection: "row", alignItems: "center", backgroundColor: "#F3F4F6",
-    borderRadius: 10, paddingHorizontal: 15, marginBottom: 25,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F3F4F6",
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    marginBottom: 25,
   },
   searchIcon: { marginRight: 10 },
   input: { flex: 1, height: 48, fontSize: 16, color: "#111827" },
-  sectionTitle: { fontSize: 20, fontWeight: "bold", color: "#111827", marginBottom: 10 },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#111827",
+    marginBottom: 10,
+  },
   grid: {
-    flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginTop: 10,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginTop: 10,
   },
   songRow: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    marginBottom: 18, padding: 10, borderRadius: 12, backgroundColor: "#FFF",
-    shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 }, elevation: 2,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 18,
+    padding: 10,
+    borderRadius: 12,
+    backgroundColor: "#FFF",
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   songImage: { width: 60, height: 60, borderRadius: 10, marginRight: 12 },
   songInfo: { flex: 1, marginRight: 10 },
   songTitle: { fontSize: 16, fontWeight: "600", color: "#111827" },
   songArtist: { fontSize: 14, color: "#6B7280", marginTop: 2 },
+  avatar: { width: 45, height: 45, borderRadius: 22 },
 });
