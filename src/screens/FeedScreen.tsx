@@ -15,6 +15,7 @@ import { useNavigation } from "@react-navigation/native";
 import { BASE_URL } from "../config";
 import colors from "../theme/colors";
 import { withFullUrl } from "../utils/url";
+import { MenuTrigger } from "react-native-popup-menu";
 
 interface Song {
   _id: string;
@@ -91,7 +92,12 @@ export default function FeedScreen() {
             <View style={styles.songRowBottom}>
               <Text style={styles.songArtist}>{item.artist}</Text>
               <View style={styles.songStats}>
-                <Ionicons name="play" size={13} color="#fff" style={{ marginRight: 4 }} />
+                <Ionicons
+                  name="play"
+                  size={13}
+                  color="#fff"
+                  style={{ marginRight: 4 }}
+                />
                 <Text style={styles.statText}>{120 + index * 10}</Text>
                 <Text style={styles.dot}>•</Text>
                 <Text style={styles.statText}>05:15</Text>
@@ -123,11 +129,19 @@ export default function FeedScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Feed</Text>
-        <Ionicons name="wifi-outline" size={22} color="#000" />
+        <MenuTrigger>
+          {/* Ảnh đại diện làm nút kích hoạt Menu */}
+          <Image
+            style={styles.icon}
+            source={{ uri: "https://picsum.photos/id/1027/100/100" }}
+          />
+        </MenuTrigger>
       </View>
 
       {loading ? (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
@@ -229,4 +243,5 @@ const styles = StyleSheet.create({
   },
   actionBtn: { flexDirection: "row", alignItems: "center", marginRight: 20 },
   actionText: { marginLeft: 6, color: "#444", fontSize: 13 },
+  icon: { width: 45, height: 45, borderRadius: 22 },
 });

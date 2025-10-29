@@ -38,12 +38,10 @@ router.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user)
-      return res.status(400).json({ message: "Email không tồn tại" });
+    if (!user) return res.status(400).json({ message: "Email không tồn tại" });
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(400).json({ message: "Mật khẩu sai" });
+    const isMatch = password === user.password;
+    if (!isMatch) return res.status(400).json({ message: "Mật khẩu sai" });
 
     res.json({ message: "Đăng nhập thành công", user });
   } catch (err) {

@@ -10,10 +10,13 @@ import {
   Alert,
 } from "react-native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { AuthStackParamList, RootStackParamList } from "../types/navigation";
+import type {
+  AuthStackParamList,
+  RootStackParamList,
+} from "../types/navigation";
 import { NavigatorScreenParams } from "@react-navigation/native";
 import { BASE_URL } from "../config";
-
+import { useAuth } from "../context/AuthContext";
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -27,34 +30,36 @@ type Props = {
 export default function LoginScreen({ navigation }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { login } = useAuth();
 
-const handleLogin = async () => {
-  if (!email || !password) {
-    Alert.alert("Lỗi Đăng nhập", "Vui lòng nhập Email và Mật khẩu.");
-    return;
-  }
-
-  try {
-    const res = await fetch(`${BASE_URL}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      Alert.alert("Đăng nhập thất bại", data.message || "Sai thông tin.");
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Lỗi Đăng nhập", "Vui lòng nhập Email và Mật khẩu.");
       return;
     }
 
-    Alert.alert("🎉 Thành công", "Đăng nhập thành công!");
-    navigation.navigate("HomeStack", { screen: "Home" });
-  } catch (err) {
-    Alert.alert("Lỗi kết nối", "Không thể kết nối đến server.");
-  }
-};
+    try {
+      const res = await fetch(`${BASE_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
+      const data = await res.json();
+
+      if (!res.ok) {
+        Alert.alert("Đăng nhập thất bại", data.message || "Sai thông tin.");
+        return;
+      }
+
+      login(data.user);
+      
+      Alert.alert("🎉 Thành công", "Đăng nhập thành công!");
+      navigation.navigate("HomeStack", { screen: "Home" });
+    } catch (err) {
+      Alert.alert("Lỗi kết nối", "Không thể kết nối đến server.");
+    }
+  };
 
   return (
     <View style={styles.container}>

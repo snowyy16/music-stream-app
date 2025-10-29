@@ -14,12 +14,34 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { BASE_URL } from "../config";
 import { withFullUrl } from "../utils/url";
+import { useAuth } from "../context/AuthContext";
+import {
+  Menu,
+  MenuOption,
+  MenuOptions,
+  MenuTrigger,
+} from "react-native-popup-menu";
 
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const [songs, setSongs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user, logout } = useAuth();
+  const displayedUsername = user ? user.username : "Guest";
+  const handleLogout = () => {
+    logout(); // Xóa thông tin người dùng khỏi Context
+    // Chuyển người dùng về màn hình đăng nhập (AuthStack)
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "AuthStack" }],
+    });
+  };
 
+  const handleSettings = () => {
+    // Logic điều hướng đến màn hình Settings
+    console.log("Điều hướng đến Settings");
+    // navigation.navigate('SettingsScreen');
+  };
   useEffect(() => {
     fetch(`${BASE_URL}/api/songs`)
       .then((res) => res.json())
@@ -40,14 +62,39 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>Good morning,</Text>
-          <Text style={styles.username}>Ashley Scott</Text>
+          <Text style={styles.username}>{displayedUsername}</Text>
         </View>
-        <TouchableOpacity>
-          <Image
-            style={styles.avatar}
-            source={{ uri: "https://picsum.photos/id/1027/100/100" }}
-          />
-        </TouchableOpacity>
+
+        <Menu>
+          <MenuTrigger>
+            {/* Ảnh đại diện làm nút kích hoạt Menu */}
+            <Image
+              style={styles.avatar}
+              source={{ uri: "https://picsum.photos/id/1027/100/100" }}
+            />
+          </MenuTrigger>
+
+          <MenuOptions
+            customStyles={{
+              // Sử dụng marginTop âm để menu thả xuống không bị lệch quá xa
+              optionsContainer: {
+                ...styles.menuOptionsContainer,
+                marginTop: 50,
+                marginRight: 10,
+                width: 150,
+                padding: 5,
+                borderRadius: 8,
+              },
+            }}
+          >
+            {/* Item Cài đặt */}
+            <MenuOption onSelect={handleSettings} text="Cài đặt" />
+
+            {/* Item Đăng xuất */}
+            <MenuOption onSelect={handleLogout} text="Đăng xuất" />
+          </MenuOptions>
+        </Menu>
+        {/* ĐÃ XÓA <TouchableOpacity> CHỨA ICON GỐC */}
       </View>
 
       {/* Search box */}
@@ -210,7 +257,12 @@ const styles = StyleSheet.create({
   },
   chartTitle: { fontSize: 18, fontWeight: "700", color: "#111827" },
   chartSub: { fontSize: 14, color: "#3B82F6", marginTop: 4 },
-  chartDesc: { fontSize: 12, color: "#6B7280", marginTop: 6, textAlign: "center" },
+  chartDesc: {
+    fontSize: 12,
+    color: "#6B7280",
+    marginTop: 6,
+    textAlign: "center",
+  },
 
   albumCard: { width: 120, marginRight: 14 },
   albumImage: { width: 120, height: 120, borderRadius: 12 },
@@ -228,7 +280,12 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     backgroundColor: "#E5E7EB",
   },
-  artistName: { marginTop: 8, fontSize: 13, fontWeight: "600", color: "#111827" },
+  artistName: {
+    marginTop: 8,
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#111827",
+  },
   followBtn: {
     marginTop: 6,
     backgroundColor: "#111827",
@@ -237,4 +294,11 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   followText: { color: "#fff", fontSize: 12, fontWeight: "600" },
+  // --- STYLE MỚI CHO POP-UP MENU ---
+  menuOptionsContainer: {
+    marginTop: 40, // Điều chỉnh vị trí thả xuống
+    width: 150,
+    padding: 5,
+    borderRadius: 8,
+  },
 });
