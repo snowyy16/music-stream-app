@@ -104,7 +104,12 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
         <ActivityIndicator size="large" color="#111827" />
       </View>
     );
@@ -123,7 +128,9 @@ export default function HomeScreen() {
           {/* Header */}
           <View style={styles.header}>
             <View>
-              <Text style={styles.welcomeText}>Chào buổi sáng, Ashley Scott</Text>
+              <Text style={styles.welcomeText}>
+                Chào buổi sáng, Ashley Scott
+              </Text>
               <Text style={styles.subtitle}>Khám phá âm nhạc hôm nay</Text>
             </View>
             <TouchableOpacity>
@@ -145,8 +152,8 @@ export default function HomeScreen() {
           onPress={() =>
             navigation.navigate("PlayScreen", {
               song: item,
-              queue: songs,   // mảng đã normalize
-              index,          // vị trí bài được bấm
+              queue: songs, // mảng đã normalize
+              index, // vị trí bài được bấm
             })
           }
         >
