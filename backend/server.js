@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import songRoutes from "./routes/songRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -14,6 +15,8 @@ app.use(express.json());
 // Cấu hình đường dẫn tuyệt đối
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+app.use("/api/auth", authRoutes);      
 
 // Config đường dẫn tuyệt đối cho /music
 app.use(

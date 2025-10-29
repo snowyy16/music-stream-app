@@ -16,9 +16,6 @@ export default function App() {
         <View style={styles.appRoot}>
           <StatusBar style="light" />
           <AppNavigator />
-
-          {/* ⬇️ MiniPlayer luôn hiển thị ở cạnh dưới, đè lên các màn */}
-          <MiniPlayer />
         </View>
       </NavigationContainer>
     </PlayerProvider>
