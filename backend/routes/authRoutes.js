@@ -1,13 +1,23 @@
 import express from "express";
 import bcrypt from "bcryptjs";
-import User from "../models/User.js";
+import mongoose from "mongoose";
 
-const router = express.Router(); // <-- BẮT BUỘC PHẢI CÓ DÒNG NÀY
+const router = express.Router();
 
-// Đăng ký
+// ✅ Schema người dùng
+const userSchema = new mongoose.Schema({
+  username: String,
+  email: { type: String, unique: true },
+  password: String,
+});
+
+const User = mongoose.model("User", userSchema);
+
+// ✅ Đăng ký
 router.post("/register", async (req, res) => {
   try {
     const { username, email, password } = req.body;
+
     const exist = await User.findOne({ email });
     if (exist) return res.status(400).json({ message: "Email đã tồn tại" });
 
@@ -17,14 +27,16 @@ router.post("/register", async (req, res) => {
 
     res.json({ message: "Đăng ký thành công" });
   } catch (err) {
+    console.error("❌ Lỗi đăng ký:", err);
     res.status(500).json({ message: err.message });
   }
 });
 
-// Đăng nhập
+// ✅ Đăng nhập
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "Email không tồn tại" });
 
@@ -33,8 +45,10 @@ router.post("/login", async (req, res) => {
 
     res.json({ message: "Đăng nhập thành công", user });
   } catch (err) {
+    console.error("❌ Lỗi đăng nhập:", err);
     res.status(500).json({ message: err.message });
   }
 });
 
-export default router; // ✅ Export đúng
+// ✅ Export mặc định (quan trọng)
+export default router;
