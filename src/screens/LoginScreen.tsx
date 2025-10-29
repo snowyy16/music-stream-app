@@ -1,3 +1,4 @@
+// src/screens/LoginScreen.tsx
 import React, { useState } from "react";
 import {
   View,
@@ -6,61 +7,54 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  Alert, // Dùng Alert thay vì alert()
+  Alert,
 } from "react-native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { AuthStackParamList, RootStackParamList } from "../types/navigation";
 import { NavigatorScreenParams } from "@react-navigation/native";
+import { BASE_URL } from "../config";
 
-export type AuthStackParamList = {
-  Login: undefined;
-  Register: undefined;
-};
-export type BottomTabParamList = {
-  Home: undefined;
-  Search: undefined;
-  Feed: undefined;
-  Library: undefined;
-};
-export type RootStackParamList = {
-  AuthStack: undefined;
-  // Dùng NavigatorScreenParams để cho phép truyền tham số điều hướng tab lồng nhau
-  HomeStack: NavigatorScreenParams<BottomTabParamList>;
-};
-// -------------------------------------------------------------------
 
-// Định nghĩa kiểu Navigation Prop chính xác
 type LoginScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   "AuthStack"
 >;
 
 type Props = {
-  navigation: LoginScreenNavigationProp;
-  // route: NativeStackScreenProps<AuthStackParamList, "Login">["route"]; // Không dùng route nên bỏ qua
+  navigation: any;
 };
 
 export default function LoginScreen({ navigation }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
-    if (email && password) {
-      // 💡 SỬA LỖI TYPESCRIPT:
-      // HomeStack hiện đã được định nghĩa là có thể nhận tham số (NavigatorScreenParams<BottomTabParamList>)
-      // Vì thế, ta truyền tham số để điều hướng đến tab 'Home' bên trong HomeStack.
-      navigation.navigate("HomeStack", {
-        screen: "Home", // Màn hình Home trong BottomTabParamList
-      });
-    } else {
-      Alert.alert("Lỗi Đăng nhập", "Vui lòng nhập Email và Mật khẩu.");
-    }
-  };
+const handleLogin = async () => {
+  if (!email || !password) {
+    Alert.alert("Lỗi Đăng nhập", "Vui lòng nhập Email và Mật khẩu.");
+    return;
+  }
 
-  // Điều hướng đến màn hình đăng ký
-  const navigateToRegister = () => {
-    // Vì Login và Register ở cùng một stack AuthStack, ta gọi trực tiếp
-    navigation.navigate("AuthStack");
-  };
+  try {
+    const res = await fetch(`${BASE_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      Alert.alert("Đăng nhập thất bại", data.message || "Sai thông tin.");
+      return;
+    }
+
+    Alert.alert("🎉 Thành công", "Đăng nhập thành công!");
+    navigation.navigate("HomeStack", { screen: "Home" });
+  } catch (err) {
+    Alert.alert("Lỗi kết nối", "Không thể kết nối đến server.");
+  }
+};
+
 
   return (
     <View style={styles.container}>
@@ -73,7 +67,7 @@ export default function LoginScreen({ navigation }: Props) {
 
       <Text style={styles.title}>Chào mừng trở lại</Text>
 
-      {/* Email Input */}
+      {/* Email */}
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -83,7 +77,7 @@ export default function LoginScreen({ navigation }: Props) {
         onChangeText={setEmail}
       />
 
-      {/* Password Input */}
+      {/* Password */}
       <TextInput
         style={styles.input}
         placeholder="Password"
@@ -98,24 +92,21 @@ export default function LoginScreen({ navigation }: Props) {
         <Text style={styles.buttonText}>Đăng nhập</Text>
       </TouchableOpacity>
 
-      {/* Signup Link */}
-      <TouchableOpacity
-        style={styles.signupContainer}
-        onPress={navigateToRegister}
-      >
-        <Text style={styles.signupText}>
-          Chưa có tài khoản? <Text style={styles.signupLink}>Đăng ký ngay</Text>
-        </Text>
-      </TouchableOpacity>
+      {/* Link Đăng ký */}
+      <View style={styles.signupContainer}>
+        <Text style={styles.signupText}>Chưa có tài khoản?</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+          <Text style={styles.signupLink}> Đăng ký ngay</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
-// --- Styles Đã Sửa cho Dark/Semi-Dark Theme ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#121212", // Nền tối (Dark Theme)
+    backgroundColor: "#121212",
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 24,
@@ -127,24 +118,24 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    color: "#fff", // Chữ trắng
+    color: "#fff",
     fontWeight: "700",
     marginBottom: 30,
   },
   input: {
     width: "100%",
-    backgroundColor: "#1e1e1e", // Màu nền input tối hơn nền chung
+    backgroundColor: "#1e1e1e",
     borderRadius: 8,
     padding: 14,
     fontSize: 16,
-    color: "#fff", // Chữ trắng
+    color: "#fff",
     marginBottom: 16,
     borderWidth: 1,
     borderColor: "#333",
   },
   button: {
     width: "100%",
-    backgroundColor: "#1DB954", // Màu xanh Spotify nổi bật
+    backgroundColor: "#1DB954",
     paddingVertical: 16,
     borderRadius: 30,
     alignItems: "center",
@@ -156,14 +147,15 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   signupContainer: {
+    flexDirection: "row",
     marginTop: 20,
   },
   signupText: {
-    color: "#fff", // Chữ trắng
+    color: "#fff",
     fontSize: 14,
   },
   signupLink: {
-    color: "#1DB954", // Link màu xanh nổi bật
+    color: "#1DB954",
     fontWeight: "600",
   },
 });
