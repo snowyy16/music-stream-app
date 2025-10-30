@@ -126,7 +126,10 @@ export default function PlayScreen({ route, navigation }: Props) {
         isPlaying: !!status.isPlaying,
       });
 
-      if (status.didJustFinish) handleNext();
+      if (status.didJustFinish) {
+  setTimeout(() => handleNext(), 500);
+}
+
     }
   };
 
@@ -239,10 +242,18 @@ export default function PlayScreen({ route, navigation }: Props) {
     }
   };
 
-  const handleNext = useCallback(() => {
-    if (!queue.length) return;
-    setCurrentIndex((i) => (i + 1) % queue.length);
-  }, [queue.length]);
+const handleNext = useCallback(async () => {
+  if (!queue.length) return;
+
+  // dọn sound cũ trước khi phát bài mới
+  if (sound) {
+    await sound.stopAsync().catch(() => {});
+    await sound.unloadAsync().catch(() => {});
+  }
+
+  setCurrentIndex((i) => (i + 1) % queue.length);
+}, [queue.length, sound]);
+
 
   const handlePrev = useCallback(async () => {
     if (!queue.length) return;

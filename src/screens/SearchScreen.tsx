@@ -16,7 +16,12 @@ import { BASE_URL } from "../config";
 import CategoryCard from "../components/CategoryCard";
 import { withFullUrl } from "../utils/url";
 import { useAuth } from "../context/AuthContext";
-import { MenuTrigger } from "react-native-popup-menu";
+import {
+  Menu,
+  MenuOption,
+  MenuOptions,
+  MenuTrigger,
+} from "react-native-popup-menu";
 
 interface Song {
   _id: string;
@@ -40,6 +45,7 @@ const categories = [
 export default function SearchScreen() {
   const navigation = useNavigation<any>();
   const [searchText, setSearchText] = useState("");
+  const { user, logout } = useAuth();
   const [songs, setSongs] = useState<Song[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -47,6 +53,17 @@ export default function SearchScreen() {
 
   const handleCategoryPress = (categoryName: string) => {
     navigation.navigate("CategoryDetail", { categoryName });
+  };
+  const handleLogout = () => {
+    logout();
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "AuthStack" }],
+    });
+  };
+
+  const handleSettings = () => {
+    navigation.navigate("Settings");
   };
 
   // 🎧 Hàm tìm kiếm bài hát
@@ -115,13 +132,55 @@ export default function SearchScreen() {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Tìm kiếm</Text>
-        <MenuTrigger>
-          {/* Ảnh đại diện làm nút kích hoạt Menu */}
-          <Image
-            style={styles.avatar}
-            source={{ uri: "https://cdn-icons-png.flaticon.com/512/4825/4825038.png" }}
-          />
-        </MenuTrigger>
+        <Menu>
+          <MenuTrigger>
+            {/* Ảnh đại diện làm nút kích hoạt Menu */}
+            <Image
+              style={styles.avatar}
+              source={{ uri: "https://cdn-icons-png.flaticon.com/512/4825/4825038.png" }}
+            />
+          </MenuTrigger>
+
+          <MenuOptions
+            customStyles={{
+              optionsContainer: {
+                backgroundColor: "#1E1E1E",
+                borderRadius: 12,
+                paddingVertical: 8,
+                marginTop: 50,
+                marginRight: 10,
+                width: 160,
+                shadowColor: "#000",
+                shadowOpacity: 0.2,
+                shadowOffset: { width: 0, height: 3 },
+                shadowRadius: 5,
+                elevation: 5,
+              },
+            }}
+          >
+            <MenuOption
+              onSelect={handleSettings}
+              customStyles={{
+                optionWrapper: styles.menuItem,
+                optionText: styles.menuText,
+              }}
+            >
+              <Ionicons name="settings-outline" size={18} color="#1DB954" />
+              <Text style={styles.menuText}>  Cài đặt</Text>
+            </MenuOption>
+
+            <MenuOption
+              onSelect={handleLogout}
+              customStyles={{
+                optionWrapper: styles.menuItem,
+              }}
+            >
+              <Ionicons name="log-out-outline" size={18} color="#FF4C4C" />
+              <Text style={[styles.menuText, { color: "#FF4C4C" }]}>  Đăng xuất</Text>
+            </MenuOption>
+          </MenuOptions>
+
+        </Menu>
       </View>
 
       {/* Input Tìm kiếm */}
@@ -253,4 +312,22 @@ const styles = StyleSheet.create({
   songTitle: { fontSize: 16, fontWeight: "600", color: "#111827" },
   songArtist: { fontSize: 14, color: "#6B7280", marginTop: 2 },
   avatar: { width: 45, height: 45, borderRadius: 22 },
+    // --- STYLE MỚI CHO POP-UP MENU ---
+  menuOptionsContainer: {
+    marginTop: 40, // Điều chỉnh vị trí thả xuống
+    width: 150,
+    padding: 5,
+    borderRadius: 8,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  menuText: {
+    fontSize: 15,
+    color: "#E5E7EB",
+    fontWeight: "500",
+  },
 });

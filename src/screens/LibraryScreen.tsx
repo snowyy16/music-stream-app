@@ -15,7 +15,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { BASE_URL } from "../config";
 import { withFullUrl } from "../utils/url";
-
+import { useAuth } from "../context/AuthContext";
+import {
+  Menu,
+  MenuOption,
+  MenuOptions,
+  MenuTrigger,
+} from "react-native-popup-menu";
 type Song = {
   _id: string;
   title: string;
@@ -96,6 +102,18 @@ export default function LibraryScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const API_URL = `${BASE_URL}/api/songs`;
+  const { user, logout } = useAuth();
+  const handleLogout = () => {
+    logout();
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "AuthStack" }],
+    });
+  };
+
+  const handleSettings = () => {
+    navigation.navigate("Settings");
+  };
 
   // Fetch & normalize như HomeScreen
   const loadSongs = useCallback(async () => {
@@ -125,7 +143,58 @@ export default function LibraryScreen() {
   const Header = useMemo(
     () => (
       <View style={styles.headerWrap}>
+        <View style={styles.header}>
         <Text style={styles.title}>Your Library</Text>
+        <Menu>
+          <MenuTrigger>
+            {/* Ảnh đại diện làm nút kích hoạt Menu */}
+            <Image
+              style={styles.avatar}
+              source={{ uri: "https://cdn-icons-png.flaticon.com/512/4825/4825038.png" }}
+            />
+          </MenuTrigger>
+
+          <MenuOptions
+            customStyles={{
+              optionsContainer: {
+                backgroundColor: "#1E1E1E",
+                borderRadius: 12,
+                paddingVertical: 8,
+                marginTop: 50,
+                marginRight: 10,
+                width: 160,
+                shadowColor: "#000",
+                shadowOpacity: 0.2,
+                shadowOffset: { width: 0, height: 3 },
+                shadowRadius: 5,
+                elevation: 5,
+              },
+            }}
+          >
+            <MenuOption
+              onSelect={handleSettings}
+              customStyles={{
+                optionWrapper: styles.menuItem,
+                optionText: styles.menuText,
+              }}
+            >
+              <Ionicons name="settings-outline" size={18} color="#1DB954" />
+              <Text style={styles.menuText}>  Cài đặt</Text>
+            </MenuOption>
+
+            <MenuOption
+              onSelect={handleLogout}
+              customStyles={{
+                optionWrapper: styles.menuItem,
+              }}
+            >
+              <Ionicons name="log-out-outline" size={18} color="#FF4C4C" />
+              <Text style={[styles.menuText, { color: "#FF4C4C" }]}>  Đăng xuất</Text>
+            </MenuOption>
+          </MenuOptions>
+
+        </Menu>
+        </View>
 
         {/* Tabs */}
         <View style={styles.tabs}>
@@ -370,8 +439,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, // Giảm padding ngang một chút
     paddingTop: 55,
   },
+    header: {
+    paddingBottom: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   headerWrap: {
-    paddingBottom: 16, // Tăng khoảng cách dưới header
     backgroundColor: "#F9FAFB", // Đảm bảo header có màu nền đồng nhất
   },
 
@@ -385,7 +459,7 @@ const styles = StyleSheet.create({
   // Tabs
   tabs: {
     flexDirection: "row",
-    marginBottom: 20, 
+    marginBottom: 5, 
     
   },
   tab: {
@@ -498,7 +572,7 @@ const styles = StyleSheet.create({
   },
   dot: {
     marginHorizontal: 6,
-    color: "#D1D5DB", // Màu chấm mờ hơn
+    color: "#D1D5DB",
   },
 
   // Cards (Playlists/Albums/Artists)
@@ -540,7 +614,7 @@ const styles = StyleSheet.create({
 
   sectionHint: {
     color: "#4B5563",
-    fontSize: 15,
+    fontSize: 18,
     marginBottom: 10,
     marginTop: 15, // Tăng khoảng cách trên
     fontWeight: "600", // Thêm độ đậm
@@ -562,5 +636,27 @@ const styles = StyleSheet.create({
   shadowOffset: { width: 0, height: 3 },
   elevation: 6,
 },
+  avatar: { width: 42, height: 42, borderRadius: 21, marginRight: 10 },
+  username: { fontSize: 15, fontWeight: "700", color: "#111" },
+  posted: { fontSize: 12, color: "#777" },
+    // --- STYLE MỚI CHO POP-UP MENU ---
+  menuOptionsContainer: {
+    marginTop: 40, // Điều chỉnh vị trí thả xuống
+    width: 150,
+    padding: 5,
+    borderRadius: 8,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  menuText: {
+    fontSize: 15,
+    color: "#E5E7EB",
+    fontWeight: "500",
+  },
+
 
 });
