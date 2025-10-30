@@ -127,9 +127,8 @@ export default function PlayScreen({ route, navigation }: Props) {
       });
 
       if (status.didJustFinish) {
-  setTimeout(() => handleNext(), 500);
-}
-
+        setTimeout(() => handleNext(), 500);
+      }
     }
   };
 
@@ -196,14 +195,22 @@ export default function PlayScreen({ route, navigation }: Props) {
   useEffect(() => {
     setCurrent(queue[currentIndex]);
     // hiển thị ngay trên MiniPlayer trước khi play xong
-    player.setNowPlaying({ song: queue[currentIndex], queue, index: currentIndex });
+    player.setNowPlaying({
+      song: queue[currentIndex],
+      queue,
+      index: currentIndex,
+    });
     loadAndPlay(queue[currentIndex], true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex]);
 
   useEffect(() => {
     setCurrent(queue[currentIndex]);
-    player.setNowPlaying({ song: queue[currentIndex], queue, index: currentIndex });
+    player.setNowPlaying({
+      song: queue[currentIndex],
+      queue,
+      index: currentIndex,
+    });
     loadAndPlay(queue[currentIndex], true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -242,30 +249,72 @@ export default function PlayScreen({ route, navigation }: Props) {
     }
   };
 
-const handleNext = useCallback(async () => {
-  if (!queue.length) return;
+  const handleNext = useCallback(async () => {
+    if (loadingRef.current || !queue.length) return;
+    loadingRef.current = true;
 
-  // dọn sound cũ trước khi phát bài mới
-  if (sound) {
-    await sound.stopAsync().catch(() => {});
-    await sound.unloadAsync().catch(() => {});
-  }
+    try {
+      const nextIndex = (currentIndex + 1) % queue.length;
+      setCurrentIndex(nextIndex);
 
-  setCurrentIndex((i) => (i + 1) % queue.length);
-}, [queue.length, sound]);
+      player.setNowPlaying({
+        song: queue[nextIndex],
+        queue,
+        index: nextIndex,
+        isPlaying: true,
+      });
 
+      // dọn sound cũ
+      if (sound) {
+        await sound.stopAsync().catch(() => {});
+        await sound.unloadAsync().catch(() => {});
+        setSound(null);
+      }
+
+      // phát bài tiếp theo
+      await loadAndPlay(queue[nextIndex], true);
+    } catch (e) {
+      console.error("handleNext error:", e);
+    } finally {
+      loadingRef.current = false;
+    }
+  }, [queue, currentIndex, sound, loadAndPlay]);
 
   const handlePrev = useCallback(async () => {
-    if (!queue.length) return;
-    if (position > 3000 && sound) {
-      await sound.setPositionAsync(0);
-      setPosition(0);
-      player.updateProgress({ position: 0 });
-      return;
-    }
-    setCurrentIndex((i) => (i - 1 + queue.length) % queue.length);
-  }, [queue.length, position, sound, player]);
+    if (loadingRef.current || !queue.length) return;
+    loadingRef.current = true;
 
+    try {
+      // Nếu bài hiện tại mới phát < 3s thì quay lại bài trước, ngược lại thì tua về đầu
+      if (position > 3000 && sound) {
+        await sound.setPositionAsync(0);
+        setPosition(0);
+        player.updateProgress({ position: 0 });
+        return;
+      }
+
+      const prevIndex = (currentIndex - 1 + queue.length) % queue.length;
+      setCurrentIndex(prevIndex);
+      player.setNowPlaying({
+        song: queue[prevIndex],
+        queue,
+        index: prevIndex,
+        isPlaying: true,
+      });
+
+      if (sound) {
+        await sound.stopAsync().catch(() => {});
+        await sound.unloadAsync().catch(() => {});
+        setSound(null);
+      }
+
+      await loadAndPlay(queue[prevIndex], true);
+    } catch (e) {
+      console.error("handlePrev error:", e);
+    } finally {
+      loadingRef.current = false;
+    }
+  }, [queue, currentIndex, sound, position, player, loadAndPlay]);
   // ------ UI ------
   const formatTime = (millis: number) => {
     const total = Math.max(0, Math.floor(millis / 1000));
@@ -277,11 +326,18 @@ const handleNext = useCallback(async () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Nền mờ */}
-      <Image source={{ uri: current.image }} style={StyleSheet.absoluteFillObject} blurRadius={25} />
+      <Image
+        source={{ uri: current.image }}
+        style={StyleSheet.absoluteFillObject}
+        blurRadius={25}
+      />
       <View style={styles.overlay} />
 
       <View style={styles.content}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => navigation.goBack()}
+        >
           <Ionicons name="chevron-back" size={28} color="#fff" />
         </TouchableOpacity>
 
@@ -326,7 +382,11 @@ const handleNext = useCallback(async () => {
             <ActivityIndicator size="large" color="#fff" />
           ) : (
             <TouchableOpacity style={styles.playBtn} onPress={togglePlay}>
-              <Ionicons name={isPlaying ? "pause" : "play"} size={42} color="#111827" />
+              <Ionicons
+                name={isPlaying ? "pause" : "play"}
+                size={42}
+                color="#111827"
+              />
             </TouchableOpacity>
           )}
 
@@ -345,8 +405,16 @@ const handleNext = useCallback(async () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000" },
-  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.45)" },
-  content: { flex: 1, alignItems: "center", justifyContent: "space-between", paddingVertical: 40 },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.45)",
+  },
+  content: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 40,
+  },
   backBtn: { position: "absolute", top: 60, left: 25, zIndex: 10 },
   cover: {
     width: width * 0.7,
@@ -359,17 +427,26 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 5 },
   },
   info: { alignItems: "center", marginTop: 40 },
-  title: { fontSize: 24, fontWeight: "700", color: "#fff", textAlign: "center" },
+  title: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#fff",
+    textAlign: "center",
+  },
   artist: { fontSize: 16, color: "#ccc", marginTop: 6 },
   sliderContainer: { alignItems: "center", marginTop: 20 },
-  timeRow: { flexDirection: "row", justifyContent: "space-between", width: width * 0.85 },
+  timeRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: width * 0.85,
+  },
   time: { color: "#aaa", fontSize: 13 },
   controlsRow: {
     width: width * 0.9,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 32,
+    marginBottom: 90,
   },
   ctrlBtn: { padding: 10 },
   playBtn: {

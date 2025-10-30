@@ -40,14 +40,13 @@ export default function HomeScreen() {
     navigation.navigate("Settings");
   };
 
-
   useEffect(() => {
     fetch(`${BASE_URL}/api/songs`)
       .then((res) => res.json())
       .then((data) => {
         setSongs(data.map(withFullUrl).slice(0, 50));
       })
-      .catch(() => { })
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
@@ -60,7 +59,7 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Good morning,</Text>
+          <Text style={styles.greeting}>Hello, </Text>
           <Text style={styles.username}>{displayedUsername}</Text>
         </View>
 
@@ -69,7 +68,9 @@ export default function HomeScreen() {
             {/* Ảnh đại diện làm nút kích hoạt Menu */}
             <Image
               style={styles.avatar}
-              source={{ uri: "https://cdn-icons-png.flaticon.com/512/4825/4825038.png" }}
+              source={{
+                uri: "https://cdn-icons-png.flaticon.com/512/4825/4825038.png",
+              }}
             />
           </MenuTrigger>
 
@@ -98,7 +99,7 @@ export default function HomeScreen() {
               }}
             >
               <Ionicons name="settings-outline" size={18} color="#1DB954" />
-              <Text style={styles.menuText}>  Cài đặt</Text>
+              <Text style={styles.menuText}> Cài đặt</Text>
             </MenuOption>
 
             <MenuOption
@@ -108,10 +109,12 @@ export default function HomeScreen() {
               }}
             >
               <Ionicons name="log-out-outline" size={18} color="#FF4C4C" />
-              <Text style={[styles.menuText, { color: "#FF4C4C" }]}>  Đăng xuất</Text>
+              <Text style={[styles.menuText, { color: "#FF4C4C" }]}>
+                {" "}
+                Đăng xuất
+              </Text>
             </MenuOption>
           </MenuOptions>
-
         </Menu>
         {/* ĐÃ XÓA <TouchableOpacity> CHỨA ICON GỐC */}
       </View>
@@ -331,5 +334,4 @@ const styles = StyleSheet.create({
     color: "#E5E7EB",
     fontWeight: "500",
   },
-
 });

@@ -1,5 +1,12 @@
 import React from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { usePlayer } from "../player/store";
@@ -8,7 +15,8 @@ const { width } = Dimensions.get("window");
 
 export default function MiniPlayer() {
   const navigation = useNavigation<any>();
-  const { song, isPlaying, position, duration, togglePlayPause, next, prev, queue, index } = usePlayer();
+  const { song, isPlaying, position, duration, togglePlayPause, queue, index } =
+    usePlayer(); // ✅ bỏ next, prev
 
   if (!song) return null;
 
@@ -27,7 +35,9 @@ export default function MiniPlayer() {
       style={styles.container}
     >
       {/* Thanh tiến trình */}
-      <View style={[styles.progress, { width: Math.max(12, progress * width) }]} />
+      <View
+        style={[styles.progress, { width: Math.max(12, progress * width) }]}
+      />
 
       <View style={styles.row}>
         {/* Ảnh bài hát */}
@@ -35,24 +45,22 @@ export default function MiniPlayer() {
 
         {/* Thông tin bài hát */}
         <View style={styles.info}>
-          <Text numberOfLines={1} style={styles.title}>{song.title}</Text>
-          <Text numberOfLines={1} style={styles.artist}>{song.artist}</Text>
+          <Text numberOfLines={1} style={styles.title}>
+            {song.title}
+          </Text>
+          <Text numberOfLines={1} style={styles.artist}>
+            {song.artist}
+          </Text>
         </View>
 
-        {/* Nút điều khiển nhạc */}
-        <View style={styles.controls}>
-          <TouchableOpacity onPress={prev} style={styles.iconBtn}>
-            <Ionicons name="play-skip-back" size={22} color="#111827" />
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={togglePlayPause} style={styles.iconBtn}>
-            <Ionicons name={isPlaying ? "pause" : "play"} size={22} color="#111827" />
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={next} style={styles.iconBtn}>
-            <Ionicons name="play-skip-forward" size={22} color="#111827" />
-          </TouchableOpacity>
-        </View>
+        {/* ✅ Chỉ giữ nút Play/Pause */}
+        <TouchableOpacity onPress={togglePlayPause} style={styles.iconBtn}>
+          <Ionicons
+            name={isPlaying ? "pause" : "play"}
+            size={22}
+            color="#111827"
+          />
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
@@ -63,7 +71,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 12,
     right: 12,
-    bottom: 64, // ✅ đặt cao hơn thanh điều hướng ~64px
+    bottom: 64,
     backgroundColor: "#fff",
     borderRadius: 14,
     shadowColor: "#000",
@@ -79,14 +87,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
-  cover: { width: 44, height: 44, borderRadius: 8, marginRight: 10, backgroundColor: "#eee" },
+  cover: {
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    marginRight: 10,
+    backgroundColor: "#eee",
+  },
   info: { flex: 1, justifyContent: "center" },
   title: { fontSize: 14, fontWeight: "700", color: "#111827" },
   artist: { fontSize: 12, color: "#6B7280", marginTop: 2 },
-  controls: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  iconBtn: { paddingHorizontal: 6, paddingVertical: 4 },
+  iconBtn: { paddingHorizontal: 10, paddingVertical: 4 }, // ✅ căn giữa đẹp hơn
   progress: { height: 2, backgroundColor: "#1DB954" },
 });

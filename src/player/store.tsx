@@ -1,13 +1,13 @@
 import React, { createContext, useContext, useState, useMemo } from "react";
 import type { ImageSourcePropType } from "react-native";
-import { activeSoundRef, stopActiveSound } from "./manager";
+import { activeSoundRef, stopActiveSound, loadAndPlay } from "./manager";
 
 export type Song = {
   _id?: string;
   title: string;
   artist: string;
-  image: string;   // URL
-  url: string;     // URL
+  image: string; // URL
+  url: string; // URL
 };
 
 type PlayerState = {
@@ -21,10 +21,14 @@ type PlayerState = {
 
 type PlayerActions = {
   setNowPlaying: (p: Partial<PlayerState> & { song?: Song }) => void;
-  updateProgress: (p: { position?: number; duration?: number; isPlaying?: boolean }) => void;
+  updateProgress: (p: {
+    position?: number;
+    duration?: number;
+    isPlaying?: boolean;
+  }) => void;
   togglePlayPause: () => Promise<void>;
-  next: () => void;
-  prev: () => void;
+  next: () => Promise<void>;
+  prev: () => Promise<void>;
   clear: () => Promise<void>;
 };
 
@@ -47,7 +51,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
           song: p.song ?? s.song,
           queue: (p as any).queue ?? s.queue,
           index: (p as any).index ?? s.index,
-          isPlaying: p as any && "isPlaying" in p ? (p as any).isPlaying : s.isPlaying,
+          isPlaying:
+            (p as any) && "isPlaying" in p ? (p as any).isPlaying : s.isPlaying,
           position: (p as any).position ?? s.position,
           duration: (p as any).duration ?? s.duration,
         })),
@@ -71,20 +76,42 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
           setState((s) => ({ ...s, isPlaying: true }));
         }
       },
-      next: () => {
-        setState((s) => {
-          if (!s.queue.length) return s;
-          const ni = (s.index + 1) % s.queue.length;
-          return { ...s, index: ni, song: s.queue[ni], position: 0 };
+
+      // ✅ Khi chuyển bài -> phát luôn, không cần bấm play
+      next: async () => {
+        if (!state.queue.length) return;
+        const ni = (state.index + 1) % state.queue.length;
+        const nextSong = state.queue[ni];
+
+        await stopActiveSound();
+        await loadAndPlay(nextSong);
+
+        setState({
+          ...state,
+          index: ni,
+          song: nextSong,
+          position: 0,
+          isPlaying: true,
         });
       },
-      prev: () => {
-        setState((s) => {
-          if (!s.queue.length) return s;
-          const ni = (s.index - 1 + s.queue.length) % s.queue.length;
-          return { ...s, index: ni, song: s.queue[ni], position: 0 };
+
+      prev: async () => {
+        if (!state.queue.length) return;
+        const ni = (state.index - 1 + state.queue.length) % state.queue.length;
+        const prevSong = state.queue[ni];
+
+        await stopActiveSound();
+        await loadAndPlay(prevSong);
+
+        setState({
+          ...state,
+          index: ni,
+          song: prevSong,
+          position: 0,
+          isPlaying: true,
         });
       },
+
       clear: async () => {
         await stopActiveSound();
         setState({
@@ -97,7 +124,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         });
       },
     }),
-    []
+    [state] // để state được cập nhật đúng
   );
 
   return (
