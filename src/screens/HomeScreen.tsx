@@ -45,7 +45,7 @@ export default function HomeScreen() {
     fetch(`${BASE_URL}/api/songs`)
       .then((res) => res.json())
       .then((data) => {
-        setSongs(data.map(withFullUrl).slice(0, 10));
+        setSongs(data.map(withFullUrl).slice(0, 50));
       })
       .catch(() => { })
       .finally(() => setLoading(false));
