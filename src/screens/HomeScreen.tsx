@@ -47,7 +47,7 @@ export default function HomeScreen() {
       .then((data) => {
         setSongs(data.map(withFullUrl).slice(0, 50));
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, []);
 
@@ -60,8 +60,7 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Hello, </Text>
-          <Text style={styles.username}>{displayedUsername}</Text>
+          <Text style={styles.username}>Hi, {displayedUsername}</Text>
         </View>
 
         <Menu>
@@ -223,7 +222,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   greeting: { fontSize: 16, color: "#6B7280" },
-  username: { fontSize: 22, fontWeight: "700", color: "#111827" },
+  username: {
+    fontSize: 30,
+    fontWeight: "800",
+    color: "#1F2937",
+    marginBottom: 20,
+  },
   avatar: { width: 45, height: 45, borderRadius: 22 },
   searchBox: {
     flexDirection: "row",

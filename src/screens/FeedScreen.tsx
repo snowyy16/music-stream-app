@@ -320,7 +320,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  headerTitle: { fontSize: 22, fontWeight: "800", color: "#111" },
+  headerTitle: {  
+    fontSize: 32, 
+    fontWeight: "900", 
+    color: "#1F2937", 
+    marginBottom: 20, 
+  },
   loadingWrap: { flex: 1, justifyContent: "center", alignItems: "center" },
   emptyText: { textAlign: "center", marginTop: 20, color: "#777" },
 

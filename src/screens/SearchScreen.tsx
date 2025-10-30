@@ -272,7 +272,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-  title: { fontSize: 32, fontWeight: "bold", color: "#111827" },
+  title: {
+    fontSize: 32,
+    fontWeight: "900", 
+    color: "#1F2937", 
+    marginBottom: 20, 
+  },
   searchBox: {
     flexDirection: "row",
     alignItems: "center",
@@ -314,7 +319,7 @@ const styles = StyleSheet.create({
   songTitle: { fontSize: 16, fontWeight: "600", color: "#111827" },
   songArtist: { fontSize: 14, color: "#6B7280", marginTop: 2 },
   avatar: { width: 45, height: 45, borderRadius: 22 },
-    // --- STYLE MỚI CHO POP-UP MENU ---
+  // --- STYLE MỚI CHO POP-UP MENU ---
   menuOptionsContainer: {
     marginTop: 40, // Điều chỉnh vị trí thả xuống
     width: 150,
