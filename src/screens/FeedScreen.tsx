@@ -111,7 +111,13 @@ export default function FeedScreen() {
       {/* Ảnh bài hát */}
       <TouchableOpacity
         activeOpacity={0.9}
-        onPress={() => navigation.navigate("PlayScreen", { song: item })}
+        onPress={() =>
+          navigation.navigate("PlayScreen", {
+            song: item,
+            queue: songs,
+            index,
+          })
+        }
       >
         <View style={styles.imageContainer}>
           <Image source={{ uri: item.image }} style={styles.coverImage} />
@@ -416,7 +422,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
     color: "#111",
   },
-    // --- STYLE MỚI CHO POP-UP MENU ---
+  // --- STYLE MỚI CHO POP-UP MENU ---
   menuOptionsContainer: {
     marginTop: 40, // Điều chỉnh vị trí thả xuống
     width: 150,

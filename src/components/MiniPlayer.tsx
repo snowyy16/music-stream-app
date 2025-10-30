@@ -25,13 +25,7 @@ export default function MiniPlayer() {
   return (
     <TouchableOpacity
       activeOpacity={0.9}
-      onPress={() =>
-        navigation.navigate("PlayScreen", {
-          song,
-          queue,
-          index,
-        })
-      }
+      onPress={() => navigation.navigate("PlayScreen")}
       style={styles.container}
     >
       {/* Thanh tiến trình */}

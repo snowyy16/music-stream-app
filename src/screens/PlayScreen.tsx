@@ -43,14 +43,11 @@ export default function PlayScreen({ route, navigation }: Props) {
   const player = usePlayer();
 
   // ------ Params & queue ------
-  const rawSong =
-    route?.params?.song ||
-    ({
-      title: "Let You Free",
-      artist: "Ryan Young",
-      image: "http://192.168.1.54:4000/image/ShapeOfYou.png",
-      url: "http://192.168.1.54:4000/music/ShapeOfYou.mp3",
-    } as Song);
+
+const rawSong =
+  player.song ||
+  route?.params?.song ; 
+
 
   const initialQueue = (route?.params?.queue || [rawSong]).map(withFullUrl);
   const initialIndex =
@@ -87,7 +84,7 @@ export default function PlayScreen({ route, navigation }: Props) {
             1,
           interruptionModeAndroid:
             (Audio as any).AndroidAudioInterruptionMode?.DoNotMix ??
-            (Audio as any).INTERRUPTION_MODE_ANDROID_DO_NOT_MIX ??
+            (Audio as any).INTERRUPTION_MODE_IOS_DO_NOT_MIX ??
             1,
           shouldDuckAndroid: true,
         });
@@ -98,8 +95,8 @@ export default function PlayScreen({ route, navigation }: Props) {
 
     return () => {
       if (sound) {
-        sound.stopAsync().catch(() => {});
-        sound.unloadAsync().catch(() => {});
+        sound.stopAsync().catch(() => { });
+        sound.unloadAsync().catch(() => { });
       }
       if (activeSoundRef.sound === sound) {
         activeSoundRef.sound = null;
@@ -129,6 +126,7 @@ export default function PlayScreen({ route, navigation }: Props) {
       if (status.didJustFinish) {
         setTimeout(() => handleNext(), 500);
       }
+
     }
   };
 
@@ -143,7 +141,7 @@ export default function PlayScreen({ route, navigation }: Props) {
 
         // Dọn sound cũ của màn này (nếu còn)
         if (sound) {
-          await sound.unloadAsync().catch(() => {});
+          await sound.unloadAsync().catch(() => { });
           setSound(null);
         }
 
@@ -195,22 +193,14 @@ export default function PlayScreen({ route, navigation }: Props) {
   useEffect(() => {
     setCurrent(queue[currentIndex]);
     // hiển thị ngay trên MiniPlayer trước khi play xong
-    player.setNowPlaying({
-      song: queue[currentIndex],
-      queue,
-      index: currentIndex,
-    });
+    player.setNowPlaying({ song: queue[currentIndex], queue, index: currentIndex });
     loadAndPlay(queue[currentIndex], true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex]);
 
   useEffect(() => {
     setCurrent(queue[currentIndex]);
-    player.setNowPlaying({
-      song: queue[currentIndex],
-      queue,
-      index: currentIndex,
-    });
+    player.setNowPlaying({ song: queue[currentIndex], queue, index: currentIndex });
     loadAndPlay(queue[currentIndex], true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -250,71 +240,36 @@ export default function PlayScreen({ route, navigation }: Props) {
   };
 
   const handleNext = useCallback(async () => {
-    if (loadingRef.current || !queue.length) return;
-    loadingRef.current = true;
+    if (!queue.length) return;
 
-    try {
-      const nextIndex = (currentIndex + 1) % queue.length;
-      setCurrentIndex(nextIndex);
-
-      player.setNowPlaying({
-        song: queue[nextIndex],
-        queue,
-        index: nextIndex,
-        isPlaying: true,
-      });
-
-      // dọn sound cũ
-      if (sound) {
-        await sound.stopAsync().catch(() => {});
-        await sound.unloadAsync().catch(() => {});
-        setSound(null);
-      }
-
-      // phát bài tiếp theo
-      await loadAndPlay(queue[nextIndex], true);
-    } catch (e) {
-      console.error("handleNext error:", e);
-    } finally {
-      loadingRef.current = false;
+    // dọn sound cũ trước khi phát bài mới
+    if (sound) {
+      await sound.stopAsync().catch(() => { });
+      await sound.unloadAsync().catch(() => { });
     }
-  }, [queue, currentIndex, sound, loadAndPlay]);
+
+    if (queue.length === 1) {
+      // 🔁 Nếu chỉ có 1 bài hát → phát lại bài đó
+      await loadAndPlay(queue[0], true);
+    } else {
+      // ⏭ Nếu có nhiều bài → chuyển sang bài kế
+      setCurrentIndex((i) => (i + 1) % queue.length);
+    }
+  }, [queue, sound, loadAndPlay]);
+
+
 
   const handlePrev = useCallback(async () => {
-    if (loadingRef.current || !queue.length) return;
-    loadingRef.current = true;
-
-    try {
-      // Nếu bài hiện tại mới phát < 3s thì quay lại bài trước, ngược lại thì tua về đầu
-      if (position > 3000 && sound) {
-        await sound.setPositionAsync(0);
-        setPosition(0);
-        player.updateProgress({ position: 0 });
-        return;
-      }
-
-      const prevIndex = (currentIndex - 1 + queue.length) % queue.length;
-      setCurrentIndex(prevIndex);
-      player.setNowPlaying({
-        song: queue[prevIndex],
-        queue,
-        index: prevIndex,
-        isPlaying: true,
-      });
-
-      if (sound) {
-        await sound.stopAsync().catch(() => {});
-        await sound.unloadAsync().catch(() => {});
-        setSound(null);
-      }
-
-      await loadAndPlay(queue[prevIndex], true);
-    } catch (e) {
-      console.error("handlePrev error:", e);
-    } finally {
-      loadingRef.current = false;
+    if (!queue.length) return;
+    if (position > 3000 && sound) {
+      await sound.setPositionAsync(0);
+      setPosition(0);
+      player.updateProgress({ position: 0 });
+      return;
     }
-  }, [queue, currentIndex, sound, position, player, loadAndPlay]);
+    setCurrentIndex((i) => (i - 1 + queue.length) % queue.length);
+  }, [queue.length, position, sound, player]);
+
   // ------ UI ------
   const formatTime = (millis: number) => {
     const total = Math.max(0, Math.floor(millis / 1000));
@@ -326,18 +281,11 @@ export default function PlayScreen({ route, navigation }: Props) {
   return (
     <SafeAreaView style={styles.container}>
       {/* Nền mờ */}
-      <Image
-        source={{ uri: current.image }}
-        style={StyleSheet.absoluteFillObject}
-        blurRadius={25}
-      />
+      <Image source={{ uri: current.image }} style={StyleSheet.absoluteFillObject} blurRadius={25} />
       <View style={styles.overlay} />
 
       <View style={styles.content}>
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={28} color="#fff" />
         </TouchableOpacity>
 
@@ -382,11 +330,7 @@ export default function PlayScreen({ route, navigation }: Props) {
             <ActivityIndicator size="large" color="#fff" />
           ) : (
             <TouchableOpacity style={styles.playBtn} onPress={togglePlay}>
-              <Ionicons
-                name={isPlaying ? "pause" : "play"}
-                size={42}
-                color="#111827"
-              />
+              <Ionicons name={isPlaying ? "pause" : "play"} size={42} color="#111827" />
             </TouchableOpacity>
           )}
 
@@ -405,16 +349,8 @@ export default function PlayScreen({ route, navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000" },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.45)",
-  },
-  content: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 40,
-  },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.45)" },
+  content: { flex: 1, alignItems: "center", justifyContent: "space-between", paddingVertical: 40 },
   backBtn: { position: "absolute", top: 60, left: 25, zIndex: 10 },
   cover: {
     width: width * 0.7,
@@ -427,19 +363,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 5 },
   },
   info: { alignItems: "center", marginTop: 40 },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#fff",
-    textAlign: "center",
-  },
+  title: { fontSize: 24, fontWeight: "700", color: "#fff", textAlign: "center" },
   artist: { fontSize: 16, color: "#ccc", marginTop: 6 },
   sliderContainer: { alignItems: "center", marginTop: 20 },
-  timeRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: width * 0.85,
-  },
+  timeRow: { flexDirection: "row", justifyContent: "space-between", width: width * 0.85 },
   time: { color: "#aaa", fontSize: 13 },
   controlsRow: {
     width: width * 0.9,
