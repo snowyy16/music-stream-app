@@ -66,6 +66,48 @@ const MOCK_SONGS: Song[] = [
     image: "Ghost.jpg",
     url: "Ghost.mp3",
   },
+  {
+    _id: "s5",
+    title: "Chìm Sâu",
+    artist: "MCK",
+    image: "ChimSau.jpg",
+    url: "ChimSau.mp3",
+  },
+  {
+    _id: "s6",
+    title: "One Of The Girls",
+    artist: "The Weeknd, Jennie & Lily-Rose Depp",
+    image: "OneOfTheGirls.jpg",
+    url: "OneOfTheGirls.mp3",
+  },
+  {
+    _id: "s7",
+    title: "Chúng Ta Của Hiện Tại",
+    artist: "Sơn Tùng M-TP",
+    image: "ChungTaCuaHienTai.jpg",
+    url: "ChungTaCuaHienTai.mp3",
+  },
+  {
+    _id: "s8",
+    title: "Mang Tiền Về Cho Mẹ",
+    artist: "Đen ft. Nguyên Thảo",
+    image: "MangTienVeChoMe.jpg",
+    url: "MangTienVeChoMe.mp3",
+  },
+  {
+    _id: "s9",
+    title: "Tình Cờ",
+    artist: "Hà Lê, SOOBIN, 16 Typh, Lil Wuyn...",
+    image: "TinhCo.jpg",
+    url: "TinhCo.mp3",
+  },
+  {
+    _id: "s10",
+    title: "Vị Nhà",
+    artist: "Đen",
+    image: "ViNha.jpg",
+    url: "ViNha.mp3",
+  },
 ];
 
 export default function PlaylistDetail() {
@@ -83,19 +125,12 @@ export default function PlaylistDetail() {
     setLoading(true);
     setError(null);
     try {
-      // Nếu bạn có API thật, bật đoạn dưới và xoá fallback:
-      // const res = await fetch(`${BASE_URL}/api/playlists/${playlist._id}/songs`);
-      // if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      // const data: Song[] = await res.json();
-
-      // Fallback mock (kèm normalize URL):
       const data = MOCK_SONGS;
 
       setSongs(data.map(withFullUrl));
     } catch (err: any) {
       console.error("Load playlist songs error:", err?.message || err);
       setError("Không tải được danh sách bài hát.");
-      // Fallback vẫn hiển thị mock để demo
       setSongs(MOCK_SONGS.map(withFullUrl));
     } finally {
       setLoading(false);

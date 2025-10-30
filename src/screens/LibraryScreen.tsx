@@ -30,8 +30,8 @@ type Song = {
   url: string;
 };
 
-type TabKey = "Playlists" | "New tag" | "Songs" | "Albums" | "Artists";
-const TABS: TabKey[] = ["Playlists", "New tag", "Songs", "Albums", "Artists"];
+type TabKey = "Playlists" | "Discover" | "Songs" | "Albums" | "Artists";
+const TABS: TabKey[] = ["Playlists", "Discover", "Songs", "Albums", "Artists"];
 
 // ==== Mock (có thể thay bằng API thật sau) ====
 const MOCK_PLAYLISTS = [
@@ -39,28 +39,49 @@ const MOCK_PLAYLISTS = [
     _id: "p1",
     name: "Daily Mix 1",
     owner: "You",
-    cover: "https://placehold.co/600x600/png?text=Daily+Mix+1",
+    cover: "https://mir-s3-cdn-cf.behance.net/project_modules/max_1200_webp/a4430b164396557.63f71e646f263.jpg",
     songCount: 25,
   },
   {
     _id: "p2",
     name: "Focus",
     owner: "You",
-    cover: "https://placehold.co/600x600/png?text=Focus",
+    cover: "https://images.squarespace-cdn.com/content/v1/6635b968db68a92f85deec29/9d01a1e1-bd5d-4374-a8f8-c40298c5f4fc/aesthetic-spotify-playlist-covers.jpeg",
     songCount: 18,
   },
   {
     _id: "p3",
     name: "Lo-fi Work",
     owner: "You",
-    cover: "https://placehold.co/600x600/png?text=Lo-fi+Work",
+    cover: "https://i.etsystatic.com/44635050/r/il/d4d5ef/6507495435/il_fullxfull.6507495435_bvyx.jpg",
     songCount: 42,
   },
   {
     _id: "p4",
     name: "Chill Night",
     owner: "You",
-    cover: "https://placehold.co/600x600/png?text=Chill+Night",
+    cover: "https://marketplace.canva.com/EAGYFRbnbek/2/0/1600w/canva-beige-orange-retro-cassette-tape-party-songs-playlist-cover-MQqkFWaPCUI.jpg",
+    songCount: 22,
+  },
+  {
+    _id: "p5",
+    name: "Acoustic",
+    owner: "You",
+    cover: "https://d1csarkz8obe9u.cloudfront.net/posterpreviews/playlist-cover-design-template-7dd4f20145b44bab7da20e33ecbcada6_screen.jpg?ts=1737852087",
+    songCount: 22,
+  },
+  {
+    _id: "p6",
+    name: "Party",
+    owner: "You",
+    cover: "https://plus.unsplash.com/premium_photo-1682125488670-29e72e5a7672?fm=jpg&q=60&w=3000",
+    songCount: 22,
+  },
+  {
+    _id: "p7",
+    name: "Summer",
+    owner: "You",
+    cover: "https://www.musicinminnesota.com/wp-content/uploads/2022/01/Photo-by-xaviershanley-from-Pexels.jpg",
     songCount: 22,
   },
 ];
@@ -68,30 +89,121 @@ const MOCK_PLAYLISTS = [
 const MOCK_ALBUMS = [
   {
     id: "a1",
-    name: "After Hours",
+    name: "Starboy",
     artist: "The Weeknd",
-    cover: "https://placehold.co/300x300/png?text=After+Hours",
+    cover: "https://upload.wikimedia.org/wikipedia/en/3/39/The_Weeknd_-_Starboy.png",
   },
   {
     id: "a2",
-    name: "Divide",
+    name: "÷ (Divide)",
     artist: "Ed Sheeran",
-    cover: "https://placehold.co/300x300/png?text=Divide",
+    cover: "https://upload.wikimedia.org/wikipedia/en/4/45/Divide_cover.png",
+  },
+  {
+    id: "a3",
+    name: "1989 (Taylor’s Version)",
+    artist: "Taylor Swift",
+    cover: "https://upload.wikimedia.org/wikipedia/en/d/d5/Taylor_Swift_-_1989_%28Taylor%27s_Version%29.png",
+  },
+  {
+    id: "a4",
+    name: "25",
+    artist: "Adele",
+    cover: "https://upload.wikimedia.org/wikipedia/en/1/1b/Adele_-_25_%28Official_Album_Cover%29.png",
+  },
+  {
+    id: "a5",
+    name: "Future Nostalgia",
+    artist: "Dua Lipa",
+    cover: "https://upload.wikimedia.org/wikipedia/en/0/05/Dua_Lipa_-_Future_Nostalgia_%28Official_Album_Cover%29.png",
+  },
+  {
+    id: "a6",
+    name: "Scorpion",
+    artist: "Drake",
+    cover: "https://upload.wikimedia.org/wikipedia/en/9/90/Scorpion_by_Drake.jpg",
+  },
+  {
+    id: "a7",
+    name: "Fine Line",
+    artist: "Harry Styles",
+    cover: "https://upload.wikimedia.org/wikipedia/en/a/a0/Harry_Styles_-_Fine_Line.png",
+  },
+  {
+    id: "a8",
+    name: "Born to Die",
+    artist: "Lana Del Rey",
+    cover: "https://upload.wikimedia.org/wikipedia/en/0/03/Lana_Del_Rey_-_Born_to_Die.png",
+  },
+  {
+    id: "a9",
+    name: "Random Access Memories",
+    artist: "Daft Punk",
+    cover: "https://upload.wikimedia.org/wikipedia/en/a/a7/Random_Access_Memories.jpg",
+  },
+  {
+    id: "a10",
+    name: "Thriller",
+    artist: "Michael Jackson",
+    cover: "https://upload.wikimedia.org/wikipedia/en/5/55/Michael_Jackson_-_Thriller.png",
   },
 ];
+
 
 const MOCK_ARTISTS = [
   {
     id: "ar1",
-    name: "Maroon 5",
-    avatar: "https://placehold.co/300x300/png?text=Maroon+5",
+    name: "Sơn Tùng M-TP",
+    avatar: "https://yt3.googleusercontent.com/c-Z7mIlntSpG6VyQ5ZqaPggqkZRhaySr-H5ZEazFN2iR1pP4eD1UGekwu0y--c4CSVhJJ1A4QT8%3Ds900-c-k-c0x00ffffff-no-rj",
   },
   {
     id: "ar2",
-    name: "Ed Sheeran",
-    avatar: "https://placehold.co/300x300/png?text=Ed+Sheeran",
+    name: "Đen Vâu",
+    avatar: "https://tse4.mm.bing.net/th/id/OIP.h6dLxmDwQnUeVzop5O20PAHaHa?pid=Api",
+  },
+  {
+    id: "ar3",
+    name: "Hoàng Thùy Linh",
+    avatar: "https://tse4.mm.bing.net/th/id/OIP.IAHLVTjvlQa1TJXRThnopAHaLG?pid=Api",
+  },
+  {
+    id: "ar4",
+    name: "Noo Phước Thịnh",
+    avatar: "https://tse4.mm.bing.net/th/id/OIP.tiPHLlvIA3Eea3wTqQhM1wHaHf?pid=Api",
+  },
+  {
+    id: "ar5",
+    name: "Mỹ Tâm",
+    avatar: "https://upload.wikimedia.org/wikipedia/commons/5/57/My_Tam_in_2019.png",
+  },
+  {
+    id: "ar6",
+    name: "Min",
+    avatar: "https://upload.wikimedia.org/wikipedia/commons/3/3d/Min_Vietnam_singer_2019.png",
+  },
+  {
+    id: "ar7",
+    name: "Erik",
+    avatar: "https://upload.wikimedia.org/wikipedia/commons/5/56/Erik_singer_Vietnam_2019.png",
+  },
+  {
+    id: "ar8",
+    name: "Hòa Minzy",
+    avatar: "https://upload.wikimedia.org/wikipedia/commons/9/98/Hoa_Minzy_2019.png",
+  },
+  {
+    id: "ar9",
+    name: "Bích Phương",
+    avatar: "https://upload.wikimedia.org/wikipedia/commons/f/f8/B%C3%ADch_Ph%C6%B0%C6%A1ng_2018.png",
+  },
+  {
+    id: "ar10",
+    name: "Vũ Cát Tường",
+    avatar: "https://upload.wikimedia.org/wikipedia/commons/0/0b/Vu_Cat_Tuong_2018.png",
   },
 ];
+
+
 
 export default function LibraryScreen() {
   const navigation = useNavigation<any>();

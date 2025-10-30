@@ -75,7 +75,7 @@ const rawSong =
       try {
         await Audio.setAudioModeAsync({
           allowsRecordingIOS: false,
-          staysActiveInBackground: false,
+          staysActiveInBackground: true,
           playsInSilentModeIOS: true,
           // ✅ Tương thích nhiều SDK (enum mới/cũ)
           interruptionModeIOS:
