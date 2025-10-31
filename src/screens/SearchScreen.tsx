@@ -33,15 +33,33 @@ interface Song {
   category?: string;
 }
 
-// --- Dữ liệu Thể loại (Mock Data) ---
+// --- Dữ liệu Thể loại (Mở rộng) ---
+// --- Dữ liệu Thể loại (Theo database thật) ---
 const categories = [
-  { name: "Top Hits", color: "#6A5ACD" },
-  { name: "Relax", color: "#4682B4" },
-  { name: "Workout", color: "#DC143C" },
-  { name: "Acoustic", color: "#FF8C00" },
-  { name: "Jazz", color: "#3CB371" },
-  { name: "Trending", color: "#FF4500" },
+  { name: "RapViet", color: "#B22222" },        // đỏ đô
+  { name: "VPop", color: "#FF6347" },           // cam đào
+  { name: "USUK", color: "#6A5ACD" },           // tím đậm
+  { name: "LoFi", color: "#2E8B57" },           // xanh rêu
+  { name: "Acoustic", color: "#FF8C00" },       // cam sáng
+  { name: "Ballad", color: "#9370DB" },         // tím lavender
+  { name: "EDM", color: "#7B68EE" },            // tím sáng
+  { name: "Indie", color: "#20B2AA" },          // xanh ngọc
+  { name: "Chill", color: "#468499" },          // xanh khói nhẹ
+  { name: "Jazz", color: "#3CB371" },           // xanh lá dịu
+  { name: "R&B", color: "#8B0000" },            // đỏ đậm tối
+  { name: "KPop", color: "#FF1493" },           // hồng neon
+  { name: "HipHop", color: "#A52A2A" },         // nâu đất
+  { name: "Dance", color: "#FF7F50" },          // cam san hô
+  { name: "PopRock", color: "#1E90FF" },        // xanh dương tươi
+  { name: "Classic", color: "#B8860B" },        // vàng đồng
+  { name: "Blues", color: "#4682B4" },          // xanh steel
+  { name: "Reggae", color: "#228B22" },         // xanh lá jamaica
+  { name: "Folk", color: "#CD853F" },           // nâu nhạt
+  { name: "Soundtrack", color: "#556B2F" },     // xanh olive
 ];
+
+
+
 
 export default function SearchScreen() {
   const navigation = useNavigation<any>();
