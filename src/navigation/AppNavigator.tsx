@@ -77,9 +77,14 @@ function MainTabs() {
 export default function AppNavigator() {
   return (
     <RootStack.Navigator
-      screenOptions={{ headerShown: false }}
       initialRouteName="AuthStack"
+      screenOptions={{
+        headerShown: false,
+        animation: "slide_from_right",
+        gestureEnabled: true,
+      }}
     >
+
       <RootStack.Screen name="AuthStack" component={AuthStackNavigator} />
       <RootStack.Screen name="HomeStack" component={MainTabs} />
       <RootStack.Screen

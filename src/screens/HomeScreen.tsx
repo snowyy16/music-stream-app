@@ -132,11 +132,11 @@ export default function HomeScreen() {
       {/* Suggestions */}
       <Text style={styles.sectionTitle}>Suggestions for you</Text>
       <Text></Text>
-      <View style={styles.rowBetween}>
-        {suggestions.map((item, idx) => (
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        {songs.slice(0, 10).map((item, idx) => (
           <TouchableOpacity
             key={idx}
-            style={styles.suggestCard}
+            style={[styles.suggestCard, { width: 160, marginRight: 14 }]}
             onPress={() =>
               navigation.navigate("PlayScreen", {
                 song: item,
@@ -147,38 +147,72 @@ export default function HomeScreen() {
           >
             <Image source={{ uri: item.image }} style={styles.suggestImage} />
             <View style={styles.suggestOverlay}>
-              <Text style={styles.suggestTitle}>{item.title}</Text>
-              <Text style={styles.suggestArtist}>{item.artist}</Text>
+              <Text style={styles.suggestTitle} numberOfLines={1}>
+                {item.title}
+              </Text>
+              <Text style={styles.suggestArtist} numberOfLines={1}>
+                {item.artist}
+              </Text>
             </View>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Charts */}
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Charts</Text>
-        <Text style={styles.seeAll}>See all</Text>
-      </View>
-      <Text></Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {["Canada", "Global", "Trending"].map((region, i) => (
-          <TouchableOpacity key={i} style={styles.chartCard}>
-            <Text style={styles.chartTitle}>Top 50</Text>
-            <Text style={styles.chartSub}>{region}</Text>
-            <Text style={styles.chartDesc}>Daily chart-toppers update</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
+
+      {/* Charts */}
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Trending albums</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("Search")}>
+          <Text style={styles.seeAll}>See all</Text>
+        </TouchableOpacity>
+      </View>
+
+
+      <Text></Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        {[
+          { region: "Canada", image: `${BASE_URL}/image/canada.jpg` },
+          { region: "Trending", image: `${BASE_URL}/image/trending.jpg` },
+          { region: "Global", image: `${BASE_URL}/image/global.jpg` },
+        ].map((item, i) => (
+          <TouchableOpacity
+            key={i}
+            style={styles.chartCard}
+            onPress={() =>
+              navigation.navigate("CategoryDetail", { categoryName: item.region })
+            }
+          >
+            {/* Hiển thị ảnh nền */}
+            <Image source={{ uri: item.image }} style={styles.chartImage} />
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+
+
+
       {/* Trending albums */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Trending albums</Text>
-        <Text style={styles.seeAll}>See all</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("Search")}>
+          <Text style={styles.seeAll}>See all</Text>
+        </TouchableOpacity>
       </View>
+
+
       <Text></Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {trendingAlbums.map((item, i) => (
-          <TouchableOpacity key={i} style={styles.albumCard}>
+          <TouchableOpacity
+            key={i}
+            style={styles.albumCard}
+            onPress={() =>
+              navigation.navigate("PlayScreen", {
+                queue: songs,
+                index: songs.findIndex((s) => s._id === item._id),
+              })
+            }
+          >
             <Image source={{ uri: item.image }} style={styles.albumImage} />
             <Text style={styles.albumTitle}>{item.title}</Text>
             <Text style={styles.albumArtist}>{item.artist}</Text>
@@ -186,23 +220,35 @@ export default function HomeScreen() {
         ))}
       </ScrollView>
 
+
       {/* Popular artists */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Popular artists</Text>
-        <Text style={styles.seeAll}>See all</Text>
+        <Text style={styles.sectionTitle}>Trending albums</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("Search")}>
+          <Text style={styles.seeAll}>See all</Text>
+        </TouchableOpacity>
       </View>
+
+
       <Text></Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {artists.map((item, i) => (
-          <View key={i} style={styles.artistCard}>
+          <TouchableOpacity
+            key={i}
+            style={styles.artistCard}
+            onPress={() =>
+              navigation.navigate("CategoryDetail", { categoryName: item.artist })
+            }
+          >
             <Image source={{ uri: item.image }} style={styles.artistAvatar} />
             <Text style={styles.artistName}>{item.artist}</Text>
             <TouchableOpacity style={styles.followBtn}>
               <Text style={styles.followText}>Follow</Text>
             </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
+
 
       <View style={{ height: 90 }} />
     </ScrollView>
@@ -274,22 +320,42 @@ const styles = StyleSheet.create({
   suggestArtist: { color: "#EEE", fontSize: 13, marginTop: 2 },
 
   chartCard: {
-    backgroundColor: "#EEF2FF",
-    borderRadius: 16,
+    position: "relative",
     width: 130,
     height: 130,
+    borderRadius: 16,
     marginRight: 14,
+    overflow: "hidden",
+    backgroundColor: "#000",
     justifyContent: "center",
     alignItems: "center",
   },
-  chartTitle: { fontSize: 18, fontWeight: "700", color: "#111827" },
-  chartSub: { fontSize: 14, color: "#3B82F6", marginTop: 4 },
+
+  chartImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 16,
+    position: "absolute",
+  },
+
+  chartOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    borderRadius: 16,
+  },
+
+  chartTitle: { fontSize: 18, fontWeight: "700", color: "#fff" },
+  chartSub: { fontSize: 14, color: "#1DB954", marginTop: 4 },
   chartDesc: {
     fontSize: 12,
-    color: "#6B7280",
+    color: "#E5E7EB",
     marginTop: 6,
     textAlign: "center",
   },
+
 
   albumCard: { width: 120, marginRight: 14 },
   albumImage: { width: 120, height: 120, borderRadius: 12 },
@@ -339,4 +405,5 @@ const styles = StyleSheet.create({
     color: "#E5E7EB",
     fontWeight: "500",
   },
+
 });
