@@ -3,6 +3,8 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import colors from "../theme/colors";
+import ArtistDetail from "../screens/ArtistDetail";
+
 
 import type {
   RootStackParamList,
@@ -113,9 +115,13 @@ export default function AppNavigator() {
         component={AddPlaylistScreen}
         options={{ headerShown: false }}
       />
-
-
+      <RootStack.Screen
+        name="ArtistDetail"
+        component={ArtistDetail}
+        options={{ headerShown: false }}
+      />
 
     </RootStack.Navigator>
+
   );
 }

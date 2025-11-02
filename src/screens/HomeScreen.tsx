@@ -237,8 +237,9 @@ export default function HomeScreen() {
             key={i}
             style={styles.artistCard}
             onPress={() =>
-              navigation.navigate("CategoryDetail", { categoryName: item.artist })
+              navigation.navigate("ArtistDetail", { artist: { name: item.artist, avatar: item.image } })
             }
+
           >
             <Image source={{ uri: item.image }} style={styles.artistAvatar} />
             <Text style={styles.artistName}>{item.artist}</Text>

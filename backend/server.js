@@ -6,6 +6,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 import songRoutes from "./routes/songRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import artistRoutes from "./routes/artistRoutes.js";
+import commentRoutes from "./routes/commentRoutes.js";
+
 
 dotenv.config();
 const app = express();
@@ -25,6 +28,8 @@ mongoose
 // ✅ Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/songs", songRoutes);
+app.use("/api/artists", artistRoutes);
+app.use("/api/comments", commentRoutes);
 
 // ✅ Public file tĩnh
 app.use(

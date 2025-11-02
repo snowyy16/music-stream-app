@@ -29,7 +29,13 @@ type Song = {
   image: string;
   url: string;
 };
-
+interface Artist {
+  _id: string;
+  name: string;
+  avatar: string;
+  country?: string;
+  followers?: number;
+}
 type TabKey = "Playlists" | "Discover" | "Songs" | "Albums" | "Artists";
 const TABS: TabKey[] = ["Playlists", "Discover", "Songs", "Albums", "Artists"];
 
@@ -150,59 +156,6 @@ const MOCK_ALBUMS = [
 ];
 
 
-const MOCK_ARTISTS = [
-  {
-    id: "ar1",
-    name: "Sơn Tùng M-TP",
-    avatar: "https://yt3.googleusercontent.com/c-Z7mIlntSpG6VyQ5ZqaPggqkZRhaySr-H5ZEazFN2iR1pP4eD1UGekwu0y--c4CSVhJJ1A4QT8%3Ds900-c-k-c0x00ffffff-no-rj",
-  },
-  {
-    id: "ar2",
-    name: "Đen Vâu",
-    avatar: "https://tse4.mm.bing.net/th/id/OIP.h6dLxmDwQnUeVzop5O20PAHaHa?pid=Api",
-  },
-  {
-    id: "ar3",
-    name: "Hoàng Thùy Linh",
-    avatar: "https://tse4.mm.bing.net/th/id/OIP.IAHLVTjvlQa1TJXRThnopAHaLG?pid=Api",
-  },
-  {
-    id: "ar4",
-    name: "Noo Phước Thịnh",
-    avatar: "https://tse4.mm.bing.net/th/id/OIP.tiPHLlvIA3Eea3wTqQhM1wHaHf?pid=Api",
-  },
-  {
-    id: "ar5",
-    name: "Mỹ Tâm",
-    avatar: "https://upload.wikimedia.org/wikipedia/commons/5/57/My_Tam_in_2019.png",
-  },
-  {
-    id: "ar6",
-    name: "Min",
-    avatar: "https://upload.wikimedia.org/wikipedia/commons/3/3d/Min_Vietnam_singer_2019.png",
-  },
-  {
-    id: "ar7",
-    name: "Erik",
-    avatar: "https://upload.wikimedia.org/wikipedia/commons/5/56/Erik_singer_Vietnam_2019.png",
-  },
-  {
-    id: "ar8",
-    name: "Hòa Minzy",
-    avatar: "https://upload.wikimedia.org/wikipedia/commons/9/98/Hoa_Minzy_2019.png",
-  },
-  {
-    id: "ar9",
-    name: "Bích Phương",
-    avatar: "https://upload.wikimedia.org/wikipedia/commons/f/f8/B%C3%ADch_Ph%C6%B0%C6%A1ng_2018.png",
-  },
-  {
-    id: "ar10",
-    name: "Vũ Cát Tường",
-    avatar: "https://upload.wikimedia.org/wikipedia/commons/0/0b/Vu_Cat_Tuong_2018.png",
-  },
-];
-
 
 
 export default function LibraryScreen() {
@@ -213,8 +166,22 @@ export default function LibraryScreen() {
   const [songs, setSongs] = useState<Song[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [artists, setArtists] = useState<any[]>([]);
   const API_URL = `${BASE_URL}/api/songs`;
   const { user, logout } = useAuth();
+  const fetchArtists = useCallback(async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/artists`);
+      const data = await res.json();
+      setArtists(data);
+    } catch (err) {
+      console.error("❌ Lỗi tải nghệ sĩ:", err);
+    }
+  }, []);
+  useEffect(() => {
+    fetchArtists();
+  }, [fetchArtists]);
+
   const handleLogout = () => {
     logout();
     navigation.reset({
@@ -256,56 +223,56 @@ export default function LibraryScreen() {
     () => (
       <View style={styles.headerWrap}>
         <View style={styles.header}>
-        <Text style={styles.title}>Your Library</Text>
-        <Menu>
-          <MenuTrigger>
-            {/* Ảnh đại diện làm nút kích hoạt Menu */}
-            <Image
-              style={styles.avatar}
-              source={{ uri: "https://cdn-icons-png.flaticon.com/512/4825/4825038.png" }}
-            />
-          </MenuTrigger>
+          <Text style={styles.title}>Your Library</Text>
+          <Menu>
+            <MenuTrigger>
+              {/* Ảnh đại diện làm nút kích hoạt Menu */}
+              <Image
+                style={styles.avatar}
+                source={{ uri: "https://cdn-icons-png.flaticon.com/512/4825/4825038.png" }}
+              />
+            </MenuTrigger>
 
-          <MenuOptions
-            customStyles={{
-              optionsContainer: {
-                backgroundColor: "#1E1E1E",
-                borderRadius: 12,
-                paddingVertical: 8,
-                marginTop: 50,
-                marginRight: 10,
-                width: 160,
-                shadowColor: "#000",
-                shadowOpacity: 0.2,
-                shadowOffset: { width: 0, height: 3 },
-                shadowRadius: 5,
-                elevation: 5,
-              },
-            }}
-          >
-            <MenuOption
-              onSelect={handleSettings}
+            <MenuOptions
               customStyles={{
-                optionWrapper: styles.menuItem,
-                optionText: styles.menuText,
+                optionsContainer: {
+                  backgroundColor: "#1E1E1E",
+                  borderRadius: 12,
+                  paddingVertical: 8,
+                  marginTop: 50,
+                  marginRight: 10,
+                  width: 160,
+                  shadowColor: "#000",
+                  shadowOpacity: 0.2,
+                  shadowOffset: { width: 0, height: 3 },
+                  shadowRadius: 5,
+                  elevation: 5,
+                },
               }}
             >
-              <Ionicons name="settings-outline" size={18} color="#1DB954" />
-              <Text style={styles.menuText}>  Cài đặt</Text>
-            </MenuOption>
+              <MenuOption
+                onSelect={handleSettings}
+                customStyles={{
+                  optionWrapper: styles.menuItem,
+                  optionText: styles.menuText,
+                }}
+              >
+                <Ionicons name="settings-outline" size={18} color="#1DB954" />
+                <Text style={styles.menuText}>  Cài đặt</Text>
+              </MenuOption>
 
-            <MenuOption
-              onSelect={handleLogout}
-              customStyles={{
-                optionWrapper: styles.menuItem,
-              }}
-            >
-              <Ionicons name="log-out-outline" size={18} color="#FF4C4C" />
-              <Text style={[styles.menuText, { color: "#FF4C4C" }]}>  Đăng xuất</Text>
-            </MenuOption>
-          </MenuOptions>
+              <MenuOption
+                onSelect={handleLogout}
+                customStyles={{
+                  optionWrapper: styles.menuItem,
+                }}
+              >
+                <Ionicons name="log-out-outline" size={18} color="#FF4C4C" />
+                <Text style={[styles.menuText, { color: "#FF4C4C" }]}>  Đăng xuất</Text>
+              </MenuOption>
+            </MenuOptions>
 
-        </Menu>
+          </Menu>
         </View>
 
         {/* Tabs */}
@@ -408,21 +375,6 @@ export default function LibraryScreen() {
     </View>
   );
 
-  // ===== Artists Tab =====
-  type AR = (typeof MOCK_ARTISTS)[number];
-  const renderArtistItem = ({ item }: ListRenderItemInfo<AR>) => (
-    <View style={styles.cardRow}>
-      <Image source={{ uri: item.avatar }} style={styles.artistAvatar} />
-      <View style={{ flex: 1, marginLeft: 12 }}>
-        <Text style={styles.cardTitle} numberOfLines={1}>
-          {item.name}
-        </Text>
-        <Text style={styles.cardSub}>Artist</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={20} color="#111827" />
-    </View>
-  );
-
   // ===== Render theo tab (mỗi tab là 1 FlatList, không lồng ScrollView) =====
   if (activeTab === "Songs") {
     return (
@@ -453,35 +405,35 @@ export default function LibraryScreen() {
     );
   }
 
-if (activeTab === "Playlists") {
-  return (
-    <>
-      <FlatList
-        style={styles.container}
-        data={MOCK_PLAYLISTS}
-        keyExtractor={(it) => it._id}
-        ListHeaderComponent={
-          <>
-            {Header}
-            <Text style={styles.sectionHint}>Your playlists</Text>
-          </>
-        }
-        renderItem={renderPlaylistItem}
-        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-        contentContainerStyle={{ paddingBottom: 140 }}
-      />
+  if (activeTab === "Playlists") {
+    return (
+      <>
+        <FlatList
+          style={styles.container}
+          data={MOCK_PLAYLISTS}
+          keyExtractor={(it) => it._id}
+          ListHeaderComponent={
+            <>
+              {Header}
+              <Text style={styles.sectionHint}>Your playlists</Text>
+            </>
+          }
+          renderItem={renderPlaylistItem}
+          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          contentContainerStyle={{ paddingBottom: 140 }}
+        />
 
-      {/* ✅ Floating Button */}
-      <TouchableOpacity
-        style={styles.fab}
-        activeOpacity={0.8}
-        onPress={() => navigation.navigate("AddPlaylistScreen")}
-      >
-        <Ionicons name="add" size={28} color="#fff" />
-      </TouchableOpacity>
-    </>
-  );
-}
+        {/* ✅ Floating Button */}
+        <TouchableOpacity
+          style={styles.fab}
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate("AddPlaylistScreen")}
+        >
+          <Ionicons name="add" size={28} color="#fff" />
+        </TouchableOpacity>
+      </>
+    );
+  }
 
   if (activeTab === "Albums") {
     return (
@@ -506,20 +458,44 @@ if (activeTab === "Playlists") {
     return (
       <FlatList
         style={styles.container}
-        data={MOCK_ARTISTS}
-        keyExtractor={(it) => it.id}
+        data={artists}
+        keyExtractor={(item) => item._id}
         ListHeaderComponent={
           <>
             {Header}
-            <Text style={styles.sectionHint}>Artists (demo)</Text>
+            <Text style={styles.sectionHint}>Artists</Text>
           </>
         }
-        renderItem={renderArtistItem}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.cardRow}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate("ArtistDetail", { artist: item })}
+          >
+            <Image source={{ uri: item.avatar }} style={styles.artistAvatar} />
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <Text style={styles.cardTitle}>{item.name}</Text>
+              <Text style={styles.cardSub}>
+                {item.country || "Vietnam"} • {item.followers || 0} followers
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#111827" />
+          </TouchableOpacity>
+
+        )}
+
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+        ListEmptyComponent={
+          <Text style={{ textAlign: "center", color: "#6B7280", marginTop: 10 }}>
+            Không có nghệ sĩ nào.
+          </Text>
+        }
         contentContainerStyle={{ paddingBottom: 100 }}
       />
     );
   }
+
+
 
   // New tag (demo)
   return (
@@ -551,7 +527,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, // Giảm padding ngang một chút
     paddingTop: 55,
   },
-    header: {
+  header: {
     paddingBottom: 16,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -571,14 +547,14 @@ const styles = StyleSheet.create({
   // Tabs
   tabs: {
     flexDirection: "row",
-    marginBottom: 5, 
-    
+    marginBottom: 5,
+
   },
   tab: {
-    backgroundColor: "#E5E7EB", 
-    paddingVertical: 8, 
-    paddingHorizontal: 13, 
-    borderRadius: 20, 
+    backgroundColor: "#E5E7EB",
+    paddingVertical: 8,
+    paddingHorizontal: 13,
+    borderRadius: 20,
     marginRight: 10,
     position: "relative",
   },
@@ -733,25 +709,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4, // Cân bằng với padding của container
   },
   fab: {
-  position: "absolute",
-  right: 20,
-  bottom: 90, // nằm trên thanh tab bar một chút
-  backgroundColor: "#111827",
-  width: 60,
-  height: 60,
-  borderRadius: 30,
-  justifyContent: "center",
-  alignItems: "center",
-  shadowColor: "#000",
-  shadowOpacity: 0.3,
-  shadowRadius: 6,
-  shadowOffset: { width: 0, height: 3 },
-  elevation: 6,
-},
+    position: "absolute",
+    right: 20,
+    bottom: 90, // nằm trên thanh tab bar một chút
+    backgroundColor: "#111827",
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
+  },
   avatar: { width: 42, height: 42, borderRadius: 21, marginRight: 10 },
   username: { fontSize: 15, fontWeight: "700", color: "#111" },
   posted: { fontSize: 12, color: "#777" },
-    // --- STYLE MỚI CHO POP-UP MENU ---
+  // --- STYLE MỚI CHO POP-UP MENU ---
   menuOptionsContainer: {
     marginTop: 40, // Điều chỉnh vị trí thả xuống
     width: 150,

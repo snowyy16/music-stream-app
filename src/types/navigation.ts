@@ -9,6 +9,7 @@ export type RootStackParamList = {
   PlaylistDetail: { queue: any[]; index: number }; 
   Settings: undefined;
   AddPlaylistScreen: undefined;
+  ArtistDetail: { artist: any };
 };
 
 export type AuthStackParamList = {
