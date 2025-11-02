@@ -1,4 +1,3 @@
-// src/screens/SearchScreen.tsx
 import { usePlayer } from "../player/store";
 import React, { useState, useEffect, useRef } from "react";
 import {

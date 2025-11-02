@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import colors from "../theme/colors";
-import ArtistDetail from "../screens/ArtistDetail";
+
 
 
 import type {
@@ -19,6 +19,8 @@ import FeedScreen from "../screens/FeedScreen";
 import PlaylistDetail from "../screens/PlaylistDetail"; // ⬅️ thêm
 import SettingsScreen from "../screens/SettingsScreen";
 import AddPlaylistScreen from "../screens/AddPlaylistScreen";
+import ArtistDetail from "../screens/ArtistDetail";
+import AlbumDetailScreen from "../screens/AlbumDetailScreen";
 
 
 
@@ -118,6 +120,11 @@ export default function AppNavigator() {
       <RootStack.Screen
         name="ArtistDetail"
         component={ArtistDetail}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="AlbumDetail" 
+        component={AlbumDetailScreen}
         options={{ headerShown: false }}
       />
 

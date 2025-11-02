@@ -8,6 +8,8 @@ import songRoutes from "./routes/songRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import artistRoutes from "./routes/artistRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
+import albumRoutes from "./routes/albumRoutes.js";
+
 
 
 
@@ -31,6 +33,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/songs", songRoutes);
 app.use("/api/artists", artistRoutes);
 app.use("/api/comments", commentRoutes);
+app.use("/api/albums", albumRoutes);
 
 // ✅ Public file tĩnh
 app.use(

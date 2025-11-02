@@ -6,6 +6,7 @@ const songSchema = new mongoose.Schema({
   image: String,
   url: String,
   category : String,
+  albumName: { type: String, required: false },
 });
 
 export default mongoose.model("Song", songSchema);

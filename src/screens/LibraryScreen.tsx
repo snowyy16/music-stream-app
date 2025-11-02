@@ -166,6 +166,8 @@ export default function LibraryScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [artists, setArtists] = useState<any[]>([]);
+  const [albums, setAlbums] = useState<any[]>([]);
+
   const API_URL = `${BASE_URL}/api/songs`;
   const { user, logout } = useAuth();
   const fetchArtists = useCallback(async () => {
@@ -191,6 +193,29 @@ export default function LibraryScreen() {
       console.error("❌ Lỗi tải nghệ sĩ:", err);
     }
   }, []);
+
+  const fetchAlbums = useCallback(async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/albums`);
+      const data = await res.json();
+
+      // Nếu cover chỉ là tên file, thêm BASE_URL
+      const normalized = data.map((a: any) => {
+        const coverFile = (a?.cover || "").trim();
+        const fullCover = coverFile.startsWith("http")
+          ? coverFile
+          : `${BASE_URL}/image/${encodeURIComponent(coverFile)}`;
+        return { ...a, cover: fullCover };
+      });
+
+      setAlbums(normalized);
+      console.log("✅ Albums loaded:", normalized);
+    } catch (err) {
+      console.error("❌ Lỗi tải albums:", err);
+    }
+  }, []);
+
+
 
   const handleLogout = () => {
     logout();
@@ -225,6 +250,12 @@ export default function LibraryScreen() {
   useEffect(() => {
     fetchArtists();
   }, [fetchArtists]);
+
+  useEffect(() => {
+    fetchArtists();
+    fetchAlbums();
+  }, [fetchArtists, fetchAlbums]);
+
 
 
   const onRefresh = async () => {
@@ -377,8 +408,13 @@ export default function LibraryScreen() {
 
   // ===== Albums Tab =====
   type AL = (typeof MOCK_ALBUMS)[number];
+  // Thay trong renderAlbumItem:
   const renderAlbumItem = ({ item }: ListRenderItemInfo<AL>) => (
-    <View style={styles.cardRow}>
+    <TouchableOpacity
+      style={styles.cardRow}
+      activeOpacity={0.85}
+      onPress={() => navigation.navigate("AlbumDetail", { album: item })}
+    >
       <Image source={{ uri: item.cover }} style={styles.cardImage} />
       <View style={{ flex: 1, marginLeft: 12 }}>
         <Text style={styles.cardTitle} numberOfLines={1}>
@@ -387,8 +423,9 @@ export default function LibraryScreen() {
         <Text style={styles.cardSub}>{item.artist}</Text>
       </View>
       <Ionicons name="chevron-forward" size={20} color="#111827" />
-    </View>
+    </TouchableOpacity>
   );
+
 
   // ===== Render theo tab (mỗi tab là 1 FlatList, không lồng ScrollView) =====
   if (activeTab === "Songs") {
@@ -454,20 +491,41 @@ export default function LibraryScreen() {
     return (
       <FlatList
         style={styles.container}
-        data={MOCK_ALBUMS}
-        keyExtractor={(it) => it.id}
+        data={albums}
+        keyExtractor={(it) => it._id}
         ListHeaderComponent={
           <>
             {Header}
-            <Text style={styles.sectionHint}>Albums (demo)</Text>
+            <Text style={styles.sectionHint}>Albums</Text>
           </>
         }
-        renderItem={renderAlbumItem}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.cardRow}
+            activeOpacity={0.85}
+            onPress={() => navigation.navigate("AlbumDetail", { album: item })}
+          >
+            <Image source={{ uri: item.cover }} style={styles.cardImage} />
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <Text style={styles.cardTitle} numberOfLines={1}>
+                {item.name}
+              </Text>
+              <Text style={styles.cardSub}>{item.artist}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#111827" />
+          </TouchableOpacity>
+        )}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+        ListEmptyComponent={
+          <Text style={{ textAlign: "center", color: "#6B7280", marginTop: 10 }}>
+            Không có album nào.
+          </Text>
+        }
         contentContainerStyle={{ paddingBottom: 100 }}
       />
     );
   }
+
 
   if (activeTab === "Artists") {
     return (

@@ -42,4 +42,17 @@ router.post("/", async (req, res) => {
   }
 });
 
+// ✅ Lấy bài hát theo albumName
+router.get("/by-album/:albumName", async (req, res) => {
+  try {
+    const { albumName } = req.params;
+    const songs = await Song.find({ albumName });
+    res.json(songs);
+  } catch (error) {
+    console.error("❌ Lỗi lấy bài hát theo album:", error);
+    res.status(500).json({ message: "Lỗi server khi lấy bài hát theo album." });
+  }
+});
+
+
 export default router;

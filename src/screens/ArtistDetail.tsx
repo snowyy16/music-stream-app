@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { withFullUrl } from "../utils/url";
-
 import {
     View,
     Text,
@@ -13,6 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
 import { BASE_URL } from "../config";
+import { useAuth } from "../context/AuthContext";
 
 type Artist = {
     _id: string;
@@ -38,27 +38,48 @@ export default function ArtistDetail() {
     const route = useRoute<RouteProp<Record<string, RouteParams>, string>>();
     const navigation = useNavigation<any>();
     const artist = route.params?.artist;
+
+    const { user } = useAuth(); // user đăng nhập hiện tại
     const [followers, setFollowers] = useState<number>(artist?.followers || 0);
     const [isFollowing, setIsFollowing] = useState(false);
     const [songs, setSongs] = useState<Song[]>([]);
     const [loading, setLoading] = useState(true);
 
+    /** 1️⃣ Kiểm tra xem user đã follow chưa */
+    useEffect(() => {
+        const checkFollowStatus = async () => {
+            if (!artist?._id || !user?._id) return;
+            try {
+                const res = await fetch(`${BASE_URL}/api/artists/${artist._id}/isFollowed?userId=${user._id}`);
+                const data = await res.json();
+                setIsFollowing(data.followed);
+            } catch (err) {
+                console.error("❌ Error checking follow status:", err);
+            }
+        };
+        checkFollowStatus();
+    }, [artist, user]);
+
+    /** 2️⃣ Xử lý follow/unfollow */
     const handleFollow = async () => {
-        if (!artist?._id) return;
+        if (!artist?._id || !user?._id) return;
         try {
             const res = await fetch(`${BASE_URL}/api/artists/${artist._id}/follow`, {
                 method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId: user._id }),
             });
             const data = await res.json();
             if (data.success) {
                 setFollowers(data.followers);
-                setIsFollowing(true);
+                setIsFollowing(data.followed);
             }
         } catch (err) {
-            console.error("❌ Lỗi khi follow:", err);
+            console.error("❌ Lỗi khi follow/unfollow:", err);
         }
     };
 
+    /** 3️⃣ Lấy danh sách bài hát theo nghệ sĩ */
     useEffect(() => {
         const loadSongsByArtist = async () => {
             if (!artist?.name) return;
@@ -66,15 +87,10 @@ export default function ArtistDetail() {
             try {
                 const res = await fetch(`${BASE_URL}/api/songs`);
                 const data: Song[] = await res.json();
-
-                // Chuẩn hoá URL ảnh và nhạc
                 const songsWithUrl = data.map(withFullUrl);
-
-                // Lọc bài hát theo tên nghệ sĩ (không phân biệt hoa/thường)
                 const filtered = songsWithUrl.filter((s) =>
                     s.artist.trim().toLowerCase().includes(artist.name.trim().toLowerCase())
                 );
-
                 setSongs(filtered);
             } catch (err) {
                 console.error("❌ Error loading songs:", err);
@@ -85,8 +101,6 @@ export default function ArtistDetail() {
 
         loadSongsByArtist();
     }, [artist]);
-
-
 
     return (
         <ScrollView style={styles.container}>
@@ -114,18 +128,22 @@ export default function ArtistDetail() {
                     {artist?.country || "Vietnam"} • {followers} followers
                 </Text>
 
-
                 <TouchableOpacity
-                    style={[styles.followBtn, isFollowing && { backgroundColor: "#6B7280" }]}
+                    style={[
+                        styles.followBtn,
+                        isFollowing ? { backgroundColor: "#6B7280" } : { backgroundColor: "#111827" },
+                    ]}
                     onPress={handleFollow}
-                    disabled={isFollowing}
                 >
-                    <Ionicons name="person-add" size={16} color="#fff" />
+                    <Ionicons
+                        name={isFollowing ? "person-remove" : "person-add"}
+                        size={16}
+                        color="#fff"
+                    />
                     <Text style={styles.followText}>
-                        {isFollowing ? "Following" : "Follow"}
+                        {isFollowing ? "Unfollow" : "Follow"}
                     </Text>
                 </TouchableOpacity>
-
             </View>
 
             {/* Songs Section */}
@@ -146,8 +164,6 @@ export default function ArtistDetail() {
                                 index: songs.findIndex((s) => s._id === song._id),
                             })
                         }
-
-
                     >
                         <Image source={{ uri: song.image }} style={styles.songImage} />
                         <View style={{ flex: 1 }}>
@@ -170,7 +186,6 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         marginBottom: 16,
     },
-    headerTitle: { fontSize: 20, fontWeight: "700", color: "#111827" },
     info: { alignItems: "center", marginBottom: 30 },
     avatar: { width: 130, height: 130, borderRadius: 65, marginBottom: 10 },
     name: { fontSize: 26, fontWeight: "800", color: "#111827" },
@@ -178,7 +193,6 @@ const styles = StyleSheet.create({
     followBtn: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#111827",
         borderRadius: 25,
         paddingHorizontal: 18,
         paddingVertical: 8,

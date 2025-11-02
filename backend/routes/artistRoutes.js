@@ -49,23 +49,52 @@ router.post("/", async (req, res) => {
   }
 });
 
-// 🧩 Route tăng lượt followers
+// server/routes/artistRoutes.js
 router.post("/:id/follow", async (req, res) => {
+  const { userId } = req.body; // id người dùng gửi lên
+  const artist = await Artist.findById(req.params.id);
+  if (!artist) return res.status(404).json({ success: false, message: "Artist not found" });
+
+  const hasFollowed = artist.followersList.includes(userId);
+
+  if (hasFollowed) {
+    // ❌ Nếu đã follow → unfollow
+    artist.followersList = artist.followersList.filter(id => id !== userId);
+    artist.followers -= 1;
+    await artist.save();
+    return res.json({ success: true, followers: artist.followers, followed: false });
+  } else {
+    // ✅ Nếu chưa follow → follow
+    artist.followersList.push(userId);
+    artist.followers += 1;
+    await artist.save();
+    return res.json({ success: true, followers: artist.followers, followed: true });
+  }
+});
+
+// ✅ Kiểm tra xem user đã follow nghệ sĩ chưa
+router.get("/:id/isFollowed", async (req, res) => {
+  const { userId } = req.query; // lấy userId từ query
   try {
     const artist = await Artist.findById(req.params.id);
     if (!artist) {
-      return res.status(404).json({ message: "Artist not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Artist not found" });
     }
 
-    artist.followers = (artist.followers || 0) + 1;
-    await artist.save();
-
-    res.json({ success: true, followers: artist.followers });
+    // Nếu chưa có danh sách followersList thì gán rỗng
+    const hasFollowed = artist.followersList?.includes(userId) || false;
+    return res.json({ success: true, followed: hasFollowed });
   } catch (err) {
-    console.error("❌ Lỗi khi follow nghệ sĩ:", err);
-    res.status(500).json({ message: "Server error" });
+    console.error("❌ Lỗi kiểm tra follow:", err);
+    res
+      .status(500)
+      .json({ success: false, message: "Lỗi server khi kiểm tra follow." });
   }
 });
+
+
 
 
 
