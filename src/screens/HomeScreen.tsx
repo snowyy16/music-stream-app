@@ -27,6 +27,23 @@ export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const [songs, setSongs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [artists, setArtists] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Lấy danh sách bài hát
+    fetch(`${BASE_URL}/api/songs`)
+      .then((res) => res.json())
+      .then((data) => setSongs(data.map(withFullUrl).slice(0, 50)))
+      .catch(() => { })
+      .finally(() => setLoading(false));
+
+    // Lấy danh sách nghệ sĩ
+    fetch(`${BASE_URL}/api/artists`)
+      .then((res) => res.json())
+      .then((data) => setArtists(data))
+      .catch((err) => console.log("Lỗi lấy nghệ sĩ:", err));
+  }, []);
+
   const { user, logout } = useAuth();
   const displayedUsername = user ? user.username : "Guest";
   const handleLogout = () => {
@@ -51,9 +68,24 @@ export default function HomeScreen() {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    // Lấy danh sách bài hát
+    fetch(`${BASE_URL}/api/songs`)
+      .then((res) => res.json())
+      .then((data) => setSongs(data.map(withFullUrl).slice(0, 50)))
+      .catch(() => { })
+      .finally(() => setLoading(false));
+
+    // Lấy danh sách nghệ sĩ
+    fetch(`${BASE_URL}/api/artists`)
+      .then((res) => res.json())
+      .then((data) => setArtists(data.slice(0, 10)))
+      .catch((err) => console.log("Lỗi lấy nghệ sĩ:", err));
+  }, []);
+
   const suggestions = songs.slice(0, 2);
   const trendingAlbums = songs.slice(2, 5);
-  const artists = songs.slice(5, 9);
+
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -223,12 +255,11 @@ export default function HomeScreen() {
 
       {/* Popular artists */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Trending albums</Text>
+        <Text style={styles.sectionTitle}>Popular Artists</Text>
         <TouchableOpacity onPress={() => navigation.navigate("Search")}>
           <Text style={styles.seeAll}>See all</Text>
         </TouchableOpacity>
       </View>
-
 
       <Text></Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -237,18 +268,28 @@ export default function HomeScreen() {
             key={i}
             style={styles.artistCard}
             onPress={() =>
-              navigation.navigate("ArtistDetail", { artist: { name: item.artist, avatar: item.image } })
+              navigation.navigate("ArtistDetail", {
+                artist: item,
+              })
             }
-
           >
-            <Image source={{ uri: item.image }} style={styles.artistAvatar} />
-            <Text style={styles.artistName}>{item.artist}</Text>
+            <Image
+              source={{
+                uri: item.avatar.startsWith("http")
+                  ? item.avatar
+                  : `${BASE_URL}/image/${item.avatar}`,
+              }}
+              style={styles.artistAvatar}
+            />
+
+            <Text style={styles.artistName}>{item.name}</Text>
             <TouchableOpacity style={styles.followBtn}>
               <Text style={styles.followText}>Follow</Text>
             </TouchableOpacity>
           </TouchableOpacity>
         ))}
       </ScrollView>
+
 
 
       <View style={{ height: 90 }} />

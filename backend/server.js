@@ -10,6 +10,7 @@ import artistRoutes from "./routes/artistRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
 
 
+
 dotenv.config();
 const app = express();
 app.use(cors());

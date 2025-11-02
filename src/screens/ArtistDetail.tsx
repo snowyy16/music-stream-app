@@ -38,9 +38,26 @@ export default function ArtistDetail() {
     const route = useRoute<RouteProp<Record<string, RouteParams>, string>>();
     const navigation = useNavigation<any>();
     const artist = route.params?.artist;
-
+    const [followers, setFollowers] = useState<number>(artist?.followers || 0);
+    const [isFollowing, setIsFollowing] = useState(false);
     const [songs, setSongs] = useState<Song[]>([]);
     const [loading, setLoading] = useState(true);
+
+    const handleFollow = async () => {
+        if (!artist?._id) return;
+        try {
+            const res = await fetch(`${BASE_URL}/api/artists/${artist._id}/follow`, {
+                method: "POST",
+            });
+            const data = await res.json();
+            if (data.success) {
+                setFollowers(data.followers);
+                setIsFollowing(true);
+            }
+        } catch (err) {
+            console.error("❌ Lỗi khi follow:", err);
+        }
+    };
 
     useEffect(() => {
         const loadSongsByArtist = async () => {
@@ -83,16 +100,32 @@ export default function ArtistDetail() {
 
             {/* Artist Info */}
             <View style={styles.info}>
-                <Image source={{ uri: artist?.avatar }} style={styles.avatar} />
+                <Image
+                    source={{
+                        uri: artist?.avatar?.startsWith("http")
+                            ? artist.avatar
+                            : `${BASE_URL}/image/${artist.avatar}`,
+                    }}
+                    style={styles.avatar}
+                />
+
                 <Text style={styles.name}>{artist?.name}</Text>
                 <Text style={styles.meta}>
-                    {artist?.country || "Vietnam"} • {artist?.followers || 0} followers
+                    {artist?.country || "Vietnam"} • {followers} followers
                 </Text>
 
-                <TouchableOpacity style={styles.followBtn}>
+
+                <TouchableOpacity
+                    style={[styles.followBtn, isFollowing && { backgroundColor: "#6B7280" }]}
+                    onPress={handleFollow}
+                    disabled={isFollowing}
+                >
                     <Ionicons name="person-add" size={16} color="#fff" />
-                    <Text style={styles.followText}>Follow</Text>
+                    <Text style={styles.followText}>
+                        {isFollowing ? "Following" : "Follow"}
+                    </Text>
                 </TouchableOpacity>
+
             </View>
 
             {/* Songs Section */}
@@ -106,7 +139,15 @@ export default function ArtistDetail() {
                     <TouchableOpacity
                         key={song._id}
                         style={styles.songCard}
-                        onPress={() => navigation.navigate("PlayScreen", { song })}
+                        onPress={() =>
+                            navigation.navigate("PlayScreen", {
+                                song,
+                                queue: songs,
+                                index: songs.findIndex((s) => s._id === song._id),
+                            })
+                        }
+
+
                     >
                         <Image source={{ uri: song.image }} style={styles.songImage} />
                         <View style={{ flex: 1 }}>

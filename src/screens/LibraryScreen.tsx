@@ -39,7 +39,6 @@ interface Artist {
 type TabKey = "Playlists" | "Discover" | "Songs" | "Albums" | "Artists";
 const TABS: TabKey[] = ["Playlists", "Discover", "Songs", "Albums", "Artists"];
 
-// ==== Mock (có thể thay bằng API thật sau) ====
 const MOCK_PLAYLISTS = [
   {
     _id: "p1",
@@ -173,14 +172,25 @@ export default function LibraryScreen() {
     try {
       const res = await fetch(`${BASE_URL}/api/artists`);
       const data = await res.json();
-      setArtists(data);
+
+      // ✅ Tự build URL ảnh ngay tại frontend
+      const artistsWithUrl = data.map((a: any) => {
+        const avatarFile = (a?.avatar || "").trim();
+
+        // Nếu avatar đã là URL thì giữ nguyên, còn nếu chỉ là tên file thì thêm BASE_URL
+        const fullAvatarUrl = avatarFile.startsWith("http")
+          ? avatarFile
+          : `${BASE_URL}/image/${encodeURIComponent(avatarFile)}`;
+
+        return { ...a, avatar: fullAvatarUrl };
+      });
+
+      setArtists(artistsWithUrl);
+      console.log("✅ Artists loaded:", artistsWithUrl);
     } catch (err) {
       console.error("❌ Lỗi tải nghệ sĩ:", err);
     }
   }, []);
-  useEffect(() => {
-    fetchArtists();
-  }, [fetchArtists]);
 
   const handleLogout = () => {
     logout();
@@ -211,6 +221,11 @@ export default function LibraryScreen() {
   useEffect(() => {
     loadSongs();
   }, [loadSongs]);
+
+  useEffect(() => {
+    fetchArtists();
+  }, [fetchArtists]);
+
 
   const onRefresh = async () => {
     setRefreshing(true);
