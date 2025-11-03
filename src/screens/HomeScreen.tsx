@@ -27,11 +27,13 @@ import {
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const [songs, setSongs] = useState<any[]>([]);
+  const [trendingAlbums, setTrendingAlbums] = useState<any[]>([]);
   const [artists, setArtists] = useState<any[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [loadingSearch, setLoadingSearch] = useState(false);
+  const [albums, setAlbums] = useState<any[]>([]);
   const fetchControllerRef = useRef<AbortController | null>(null);
   const { user, logout } = useAuth();
   const displayedUsername = user ? user.username : "Guest";
@@ -62,14 +64,31 @@ export default function HomeScreen() {
       .then((res) => res.json())
       .then((data) => setArtists(data.slice(0, 10)))
       .catch((err) => console.log("Lỗi lấy nghệ sĩ:", err));
+
+    fetch(`${BASE_URL}/api/albums`)
+      .then((res) => res.json())
+      .then((data) => {
+        const normalized = data.map((a: any) => ({
+          ...a,
+          cover: a.cover?.startsWith("http")
+            ? a.cover
+            : `${BASE_URL}/image/${a.cover}`,
+        }));
+        setTrendingAlbums(normalized.slice(0, 5)); // ✅ Gán vào state trendingAlbums
+      })
+      .catch((err) => console.error("❌ Lỗi tải albums:", err));
+
   };
+
+
+
 
   useEffect(() => {
     fetchDefaultData();
   }, []);
 
   // ====== Gọi API tìm kiếm + lưu lịch sử ======
-  const fetchSongs = async (query: string) => {
+  const fetchSearchData = async (query: string) => {
     const q = query.trim();
     if (!q) {
       fetchDefaultData();
@@ -85,15 +104,30 @@ export default function HomeScreen() {
     setLoadingSearch(true);
 
     try {
-      const res = await fetch(
-        `${BASE_URL}/api/songs?search=${encodeURIComponent(q)}`,
-        { signal: controller.signal }
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setSongs(data.map(withFullUrl));
+      // ✅ Gọi 3 API song song (đều có ?search=)
+      const [songRes, albumRes, artistRes] = await Promise.all([
+        fetch(`${BASE_URL}/api/songs?search=${encodeURIComponent(q)}`, { signal: controller.signal }),
+        fetch(`${BASE_URL}/api/albums?search=${encodeURIComponent(q)}`, { signal: controller.signal }),
+        fetch(`${BASE_URL}/api/artists?search=${encodeURIComponent(q)}`, { signal: controller.signal }),
+      ]);
 
-      // ✅ Lưu lịch sử tìm kiếm (tối đa 8 mục)
+      const [songsData, albumsData, artistsData] = await Promise.all([
+        songRes.ok ? songRes.json() : [],
+        albumRes.ok ? albumRes.json() : [],
+        artistRes.ok ? artistRes.json() : [],
+      ]);
+
+      // ✅ Cập nhật dữ liệu
+      setSongs(songsData.map(withFullUrl));
+      setAlbums(
+        albumsData.map((a: any) => ({
+          ...a,
+          cover: a.cover?.startsWith("http") ? a.cover : `${BASE_URL}/image/${a.cover}`,
+        }))
+      );
+      setArtists(artistsData);
+
+      // ✅ Lưu lịch sử tìm kiếm
       if (q && !recentSearches.includes(q)) {
         const updated = [q, ...recentSearches].slice(0, 8);
         setRecentSearches(updated);
@@ -106,9 +140,11 @@ export default function HomeScreen() {
     }
   };
 
+
+
   // ====== Debounce 0.5s ======
   useEffect(() => {
-    const delay = setTimeout(() => fetchSongs(searchText), 500);
+    const delay = setTimeout(() => fetchSearchData(searchText), 500);
     return () => clearTimeout(delay);
   }, [searchText]);
 
@@ -119,7 +155,6 @@ export default function HomeScreen() {
   };
 
   const handleSettings = () => navigation.navigate("Settings");
-  const trendingAlbums = songs.slice(2, 5);
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -249,6 +284,7 @@ export default function HomeScreen() {
       <Text style={styles.sectionTitle}>
         {searchText ? "Kết quả tìm kiếm" : "Suggestions for you"}
       </Text>
+
       <Text></Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {songs.slice(0, 10).map((item, idx) => (
@@ -275,6 +311,27 @@ export default function HomeScreen() {
           </TouchableOpacity>
         ))}
       </ScrollView>
+      {searchText && albums.length > 0 && (
+        <>
+          <Text style={[styles.sectionTitle, { marginTop: 20 }]}>Albums</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {albums.map((item, i) => (
+              <TouchableOpacity
+                key={i}
+                style={styles.albumCard}
+                onPress={() =>
+                  navigation.navigate("AlbumDetail", { album: item, artistName: item.artist })
+                }
+              >
+                <Image source={{ uri: item.cover }} style={styles.albumImage} />
+                <Text style={styles.albumTitle}>{item.name}</Text>
+                <Text style={styles.albumArtist}>{item.artist}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </>
+      )}
+
 
       {/* Charts */}
       <View style={styles.sectionHeader}>
@@ -325,9 +382,6 @@ export default function HomeScreen() {
         >
           <Text style={styles.seeAll}>See all</Text>
         </TouchableOpacity>
-
-
-
       </View>
       <Text></Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -336,16 +390,17 @@ export default function HomeScreen() {
             key={i}
             style={styles.albumCard}
             onPress={() =>
-              navigation.navigate("PlayScreen", {
-                queue: songs,
-                index: songs.findIndex((s) => s._id === item._id),
+              navigation.navigate("AlbumDetail", {
+                album: item,
+                artistName: item.artist,
               })
             }
           >
-            <Image source={{ uri: item.image }} style={styles.albumImage} />
-            <Text style={styles.albumTitle}>{item.title}</Text>
+            <Image source={{ uri: item.cover }} style={styles.albumImage} />
+            <Text style={styles.albumTitle}>{item.name}</Text>
             <Text style={styles.albumArtist}>{item.artist}</Text>
           </TouchableOpacity>
+
         ))}
       </ScrollView>
 

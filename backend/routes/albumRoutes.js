@@ -3,13 +3,29 @@ import Album from "../models/Album.js";
 
 const router = express.Router();
 
-// ✅ Lấy toàn bộ album
+// ✅ Lấy toàn bộ album hoặc tìm kiếm theo từ khóa
 router.get("/", async (req, res) => {
   try {
-    const albums = await Album.find();
+    const search = req.query.search?.trim();
+
+    let query = {};
+    if (search) {
+      // 🔍 Nếu có từ khóa search, tìm theo tên hoặc nghệ sĩ (không phân biệt hoa thường)
+      query = {
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { artist: { $regex: search, $options: "i" } },
+        ],
+      };
+    }
+
+    const albums = await Album.find(query);
     res.json(albums);
   } catch (err) {
-    res.status(500).json({ message: "Lỗi tải danh sách album", error: err.message });
+    res.status(500).json({
+      message: "Lỗi tải danh sách album",
+      error: err.message,
+    });
   }
 });
 
@@ -20,7 +36,10 @@ router.post("/", async (req, res) => {
     await album.save();
     res.status(201).json(album);
   } catch (err) {
-    res.status(400).json({ message: "Lỗi khi thêm album", error: err.message });
+    res.status(400).json({
+      message: "Lỗi khi thêm album",
+      error: err.message,
+    });
   }
 });
 
