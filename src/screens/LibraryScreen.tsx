@@ -11,6 +11,7 @@ import {
   FlatList,
   ListRenderItemInfo,
 } from "react-native";
+import { useRoute, RouteProp } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { BASE_URL } from "../config";
@@ -193,6 +194,13 @@ export default function LibraryScreen() {
       console.error("❌ Lỗi tải nghệ sĩ:", err);
     }
   }, []);
+
+  const route = useRoute<RouteProp<{ params?: { tab?: string } }, "params">>();
+  useEffect(() => {
+    if (route.params?.tab) {
+      setActiveTab(route.params.tab as any);
+    }
+  }, [route.params]);
 
   const fetchAlbums = useCallback(async () => {
     try {

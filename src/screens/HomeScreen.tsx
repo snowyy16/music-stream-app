@@ -55,7 +55,7 @@ export default function HomeScreen() {
     fetch(`${BASE_URL}/api/songs`)
       .then((res) => res.json())
       .then((data) => setSongs(data.map(withFullUrl).slice(0, 50)))
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
 
     fetch(`${BASE_URL}/api/artists`)
@@ -279,9 +279,19 @@ export default function HomeScreen() {
       {/* Charts */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Charts albums</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("Search")}>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate("HomeStack", {
+              screen: "Library",
+              params: { tab: "Discover" },
+            })
+          }
+        >
           <Text style={styles.seeAll}>See all</Text>
         </TouchableOpacity>
+
+
+
       </View>
       <Text></Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -305,9 +315,19 @@ export default function HomeScreen() {
       {/* Trending albums */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Trending albums</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("Search")}>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate("HomeStack", {
+              screen: "Library",
+              params: { tab: "Albums" },
+            })
+          }
+        >
           <Text style={styles.seeAll}>See all</Text>
         </TouchableOpacity>
+
+
+
       </View>
       <Text></Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -332,9 +352,19 @@ export default function HomeScreen() {
       {/* Artists */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Popular Artists</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("Search")}>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate("HomeStack", {
+              screen: "Library",
+              params: { tab: "Artists" },
+            })
+          }
+        >
           <Text style={styles.seeAll}>See all</Text>
         </TouchableOpacity>
+
+
+
       </View>
       <Text></Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
