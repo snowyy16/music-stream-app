@@ -43,4 +43,22 @@ router.post("/", async (req, res) => {
   }
 });
 
+// ✅ Lấy danh sách album thuộc Charts
+router.get("/charts", async (req, res) => {
+  try {
+    const charts = await Album.find({
+      $or: [
+        { genre: /chart/i },
+        { name: /top/i },
+        { name: /billboard/i },
+        { name: /hot/i }
+      ]
+    });
+    res.json(charts);
+  } catch (err) {
+    res.status(500).json({ message: "Lỗi tải charts albums" });
+  }
+});
+
+
 export default router;

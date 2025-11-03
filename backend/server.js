@@ -9,6 +9,7 @@ import authRoutes from "./routes/authRoutes.js";
 import artistRoutes from "./routes/artistRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
 import albumRoutes from "./routes/albumRoutes.js";
+import playlistRoutes from "./routes/playlistRoutes.js";
 
 
 
@@ -34,6 +35,7 @@ app.use("/api/songs", songRoutes);
 app.use("/api/artists", artistRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/albums", albumRoutes);
+app.use("/api/playlists", playlistRoutes);
 
 // ✅ Public file tĩnh
 app.use(

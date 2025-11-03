@@ -340,7 +340,7 @@ export default function HomeScreen() {
           onPress={() =>
             navigation.navigate("HomeStack", {
               screen: "Library",
-              params: { tab: "Discover" },
+              params: { tab: "Charts" },
             })
           }
         >

@@ -37,125 +37,8 @@ interface Artist {
   country?: string;
   followers?: number;
 }
-type TabKey = "Playlists" | "Discover" | "Songs" | "Albums" | "Artists";
-const TABS: TabKey[] = ["Playlists", "Discover", "Songs", "Albums", "Artists"];
-
-const MOCK_PLAYLISTS = [
-  {
-    _id: "p1",
-    name: "Daily Mix 1",
-    owner: "You",
-    cover: "https://mir-s3-cdn-cf.behance.net/project_modules/max_1200_webp/a4430b164396557.63f71e646f263.jpg",
-    songCount: 25,
-  },
-  {
-    _id: "p2",
-    name: "Focus",
-    owner: "You",
-    cover: "https://images.squarespace-cdn.com/content/v1/6635b968db68a92f85deec29/9d01a1e1-bd5d-4374-a8f8-c40298c5f4fc/aesthetic-spotify-playlist-covers.jpeg",
-    songCount: 18,
-  },
-  {
-    _id: "p3",
-    name: "Lo-fi Work",
-    owner: "You",
-    cover: "https://i.etsystatic.com/44635050/r/il/d4d5ef/6507495435/il_fullxfull.6507495435_bvyx.jpg",
-    songCount: 42,
-  },
-  {
-    _id: "p4",
-    name: "Chill Night",
-    owner: "You",
-    cover: "https://marketplace.canva.com/EAGYFRbnbek/2/0/1600w/canva-beige-orange-retro-cassette-tape-party-songs-playlist-cover-MQqkFWaPCUI.jpg",
-    songCount: 22,
-  },
-  {
-    _id: "p5",
-    name: "Acoustic",
-    owner: "You",
-    cover: "https://d1csarkz8obe9u.cloudfront.net/posterpreviews/playlist-cover-design-template-7dd4f20145b44bab7da20e33ecbcada6_screen.jpg?ts=1737852087",
-    songCount: 22,
-  },
-  {
-    _id: "p6",
-    name: "Party",
-    owner: "You",
-    cover: "https://plus.unsplash.com/premium_photo-1682125488670-29e72e5a7672?fm=jpg&q=60&w=3000",
-    songCount: 22,
-  },
-  {
-    _id: "p7",
-    name: "Summer",
-    owner: "You",
-    cover: "https://www.musicinminnesota.com/wp-content/uploads/2022/01/Photo-by-xaviershanley-from-Pexels.jpg",
-    songCount: 22,
-  },
-];
-
-const MOCK_ALBUMS = [
-  {
-    id: "a1",
-    name: "Starboy",
-    artist: "The Weeknd",
-    cover: "https://upload.wikimedia.org/wikipedia/en/3/39/The_Weeknd_-_Starboy.png",
-  },
-  {
-    id: "a2",
-    name: "÷ (Divide)",
-    artist: "Ed Sheeran",
-    cover: "https://upload.wikimedia.org/wikipedia/en/4/45/Divide_cover.png",
-  },
-  {
-    id: "a3",
-    name: "1989 (Taylor’s Version)",
-    artist: "Taylor Swift",
-    cover: "https://upload.wikimedia.org/wikipedia/en/d/d5/Taylor_Swift_-_1989_%28Taylor%27s_Version%29.png",
-  },
-  {
-    id: "a4",
-    name: "25",
-    artist: "Adele",
-    cover: "https://upload.wikimedia.org/wikipedia/en/1/1b/Adele_-_25_%28Official_Album_Cover%29.png",
-  },
-  {
-    id: "a5",
-    name: "Future Nostalgia",
-    artist: "Dua Lipa",
-    cover: "https://upload.wikimedia.org/wikipedia/en/0/05/Dua_Lipa_-_Future_Nostalgia_%28Official_Album_Cover%29.png",
-  },
-  {
-    id: "a6",
-    name: "Scorpion",
-    artist: "Drake",
-    cover: "https://upload.wikimedia.org/wikipedia/en/9/90/Scorpion_by_Drake.jpg",
-  },
-  {
-    id: "a7",
-    name: "Fine Line",
-    artist: "Harry Styles",
-    cover: "https://upload.wikimedia.org/wikipedia/en/a/a0/Harry_Styles_-_Fine_Line.png",
-  },
-  {
-    id: "a8",
-    name: "Born to Die",
-    artist: "Lana Del Rey",
-    cover: "https://upload.wikimedia.org/wikipedia/en/0/03/Lana_Del_Rey_-_Born_to_Die.png",
-  },
-  {
-    id: "a9",
-    name: "Random Access Memories",
-    artist: "Daft Punk",
-    cover: "https://upload.wikimedia.org/wikipedia/en/a/a7/Random_Access_Memories.jpg",
-  },
-  {
-    id: "a10",
-    name: "Thriller",
-    artist: "Michael Jackson",
-    cover: "https://upload.wikimedia.org/wikipedia/en/5/55/Michael_Jackson_-_Thriller.png",
-  },
-];
-
-
+type TabKey = "Playlists" | "Charts" | "Songs" | "Albums" | "Artists";
+const TABS: TabKey[] = ["Playlists", "Charts", "Songs", "Albums", "Artists"];
 
 
 export default function LibraryScreen() {
@@ -168,6 +51,9 @@ export default function LibraryScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [artists, setArtists] = useState<any[]>([]);
   const [albums, setAlbums] = useState<any[]>([]);
+  const [chartAlbums, setChartAlbums] = useState<any[]>([]);
+  const [playlists, setPlaylists] = useState<any[]>([]);
+
 
   const API_URL = `${BASE_URL}/api/songs`;
   const { user, logout } = useAuth();
@@ -223,6 +109,39 @@ export default function LibraryScreen() {
     }
   }, []);
 
+  const fetchPlaylists = useCallback(async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/playlists`);
+      const data = await res.json();
+      setPlaylists(data);
+      console.log("✅ Playlists loaded:", data);
+    } catch (err) {
+      console.error("❌ Lỗi tải playlists:", err);
+    }
+  }, []);
+
+  // ✅ Thêm hàm lấy dữ liệu Charts albums
+  const fetchChartAlbums = useCallback(async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/albums/charts`);
+      const data = await res.json();
+      const normalized = data.map((a: any) => {
+        const coverFile = (a?.cover || "").trim();
+        const fullCover = coverFile.startsWith("http")
+          ? coverFile
+          : `${BASE_URL}/image/${encodeURIComponent(coverFile)}`;
+        return { ...a, cover: fullCover };
+      });
+
+      setChartAlbums(normalized.slice(0, 10)); // chỉ hiển thị 10 album
+      console.log("✅ Chart albums loaded:", normalized);
+    } catch (err) {
+      console.error("❌ Lỗi tải Chart albums:", err);
+    }
+  }, []);
+
+
+
 
 
   const handleLogout = () => {
@@ -263,6 +182,17 @@ export default function LibraryScreen() {
     fetchArtists();
     fetchAlbums();
   }, [fetchArtists, fetchAlbums]);
+
+  useEffect(() => {
+    fetchPlaylists();
+    fetchAlbums();
+    fetchChartAlbums();
+  }, [fetchPlaylists, fetchAlbums, fetchChartAlbums]);
+
+
+
+
+
 
 
 
@@ -393,47 +323,6 @@ export default function LibraryScreen() {
     </TouchableOpacity>
   );
 
-  // ===== Playlists Tab =====
-  type PL = (typeof MOCK_PLAYLISTS)[number];
-  const renderPlaylistItem = ({ item }: ListRenderItemInfo<PL>) => (
-    <TouchableOpacity
-      style={styles.cardRow}
-      activeOpacity={0.85}
-      onPress={() => navigation.navigate("PlaylistDetail", { playlist: item })}
-    >
-      <Image source={{ uri: item.cover }} style={styles.cardImage} />
-      <View style={{ flex: 1, marginLeft: 12 }}>
-        <Text style={styles.cardTitle} numberOfLines={1}>
-          {item.name}
-        </Text>
-        <Text style={styles.cardSub}>
-          {item.songCount} songs • {item.owner}
-        </Text>
-      </View>
-      <Ionicons name="chevron-forward" size={20} color="#111827" />
-    </TouchableOpacity>
-  );
-
-  // ===== Albums Tab =====
-  type AL = (typeof MOCK_ALBUMS)[number];
-  // Thay trong renderAlbumItem:
-  const renderAlbumItem = ({ item }: ListRenderItemInfo<AL>) => (
-    <TouchableOpacity
-      style={styles.cardRow}
-      activeOpacity={0.85}
-      onPress={() => navigation.navigate("AlbumDetail", { album: item })}
-    >
-      <Image source={{ uri: item.cover }} style={styles.cardImage} />
-      <View style={{ flex: 1, marginLeft: 12 }}>
-        <Text style={styles.cardTitle} numberOfLines={1}>
-          {item.name}
-        </Text>
-        <Text style={styles.cardSub}>{item.artist}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={20} color="#111827" />
-    </TouchableOpacity>
-  );
-
 
   // ===== Render theo tab (mỗi tab là 1 FlatList, không lồng ScrollView) =====
   if (activeTab === "Songs") {
@@ -470,7 +359,7 @@ export default function LibraryScreen() {
       <>
         <FlatList
           style={styles.container}
-          data={MOCK_PLAYLISTS}
+          data={playlists}
           keyExtractor={(it) => it._id}
           ListHeaderComponent={
             <>
@@ -478,8 +367,39 @@ export default function LibraryScreen() {
               <Text style={styles.sectionHint}>Your playlists</Text>
             </>
           }
-          renderItem={renderPlaylistItem}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.cardRow}
+              activeOpacity={0.85}
+              onPress={() =>
+                navigation.navigate("PlaylistDetail", { playlist: item })
+              }
+            >
+              <Image
+                source={{
+                  uri: item.cover?.startsWith("http")
+                    ? item.cover
+                    : `${BASE_URL}/image/${item.cover}`,
+                }}
+                style={styles.cardImage}
+              />
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={styles.cardTitle} numberOfLines={1}>
+                  {item.name}
+                </Text>
+                <Text style={styles.cardSub} numberOfLines={1}>
+                  {item.description || "No description"}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#111827" />
+            </TouchableOpacity>
+          )}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          ListEmptyComponent={
+            <Text style={{ textAlign: "center", color: "#6B7280", marginTop: 10 }}>
+              Không có playlist nào.
+            </Text>
+          }
           contentContainerStyle={{ paddingBottom: 140 }}
         />
 
@@ -494,6 +414,7 @@ export default function LibraryScreen() {
       </>
     );
   }
+
 
   if (activeTab === "Albums") {
     return (
@@ -534,7 +455,44 @@ export default function LibraryScreen() {
     );
   }
 
-
+  if (activeTab === "Charts") {
+    return (
+      <FlatList
+        style={styles.container}
+        data={chartAlbums}
+        keyExtractor={(it) => it._id}
+        ListHeaderComponent={
+          <>
+            {Header}
+            <Text style={styles.sectionHint}>Charts Albums</Text>
+          </>
+        }
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.cardRow}
+            activeOpacity={0.85}
+            onPress={() => navigation.navigate("AlbumDetail", { album: item })}
+          >
+            <Image source={{ uri: item.cover }} style={styles.cardImage} />
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <Text style={styles.cardTitle} numberOfLines={1}>
+                {item.name}
+              </Text>
+              <Text style={styles.cardSub}>{item.artist}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#111827" />
+          </TouchableOpacity>
+        )}
+        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+        ListEmptyComponent={
+          <Text style={{ textAlign: "center", color: "#6B7280", marginTop: 10 }}>
+            Không có album nào trong Charts.
+          </Text>
+        }
+        contentContainerStyle={{ paddingBottom: 100 }}
+      />
+    );
+  }
   if (activeTab === "Artists") {
     return (
       <FlatList
