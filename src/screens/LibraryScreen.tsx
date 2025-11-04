@@ -45,7 +45,6 @@ export default function LibraryScreen() {
   const navigation = useNavigation<any>();
   const [activeTab, setActiveTab] = useState<TabKey>("Playlists");
 
-  // Songs
   const [songs, setSongs] = useState<Song[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -123,26 +122,13 @@ export default function LibraryScreen() {
   // ✅ Thêm hàm lấy dữ liệu Charts albums
   const fetchChartAlbums = useCallback(async () => {
     try {
-      const res = await fetch(`${BASE_URL}/api/albums/charts`);
+      const res = await fetch(`${BASE_URL}/api/charts`);
       const data = await res.json();
-      const normalized = data.map((a: any) => {
-        const coverFile = (a?.cover || "").trim();
-        const fullCover = coverFile.startsWith("http")
-          ? coverFile
-          : `${BASE_URL}/image/${encodeURIComponent(coverFile)}`;
-        return { ...a, cover: fullCover };
-      });
-
-      setChartAlbums(normalized.slice(0, 10)); // chỉ hiển thị 10 album
-      console.log("✅ Chart albums loaded:", normalized);
+      setChartAlbums(data);
     } catch (err) {
-      console.error("❌ Lỗi tải Chart albums:", err);
+      console.error("❌ Lỗi tải charts:", err);
     }
   }, []);
-
-
-
-
 
   const handleLogout = () => {
     logout();
@@ -189,13 +175,6 @@ export default function LibraryScreen() {
     fetchChartAlbums();
   }, [fetchPlaylists, fetchAlbums, fetchChartAlbums]);
 
-
-
-
-
-
-
-
   const onRefresh = async () => {
     setRefreshing(true);
     await loadSongs();
@@ -213,8 +192,15 @@ export default function LibraryScreen() {
               {/* Ảnh đại diện làm nút kích hoạt Menu */}
               <Image
                 style={styles.avatar}
-                source={{ uri: "https://cdn-icons-png.flaticon.com/512/4825/4825038.png" }}
+                source={{
+                  uri: user?.avatar
+                    ? user.avatar.startsWith("http")
+                      ? user.avatar
+                      : `${BASE_URL}/image/avatars/${user.avatar}`
+                    : "https://cdn-icons-png.flaticon.com/512/4825/4825038.png",
+                }}
               />
+
             </MenuTrigger>
 
             <MenuOptions
@@ -282,7 +268,7 @@ export default function LibraryScreen() {
         </View>
       </View>
     ),
-    [activeTab]
+    [activeTab, user?.avatar, user?._id]
   );
 
   // ===== Songs Tab =====
@@ -464,35 +450,51 @@ export default function LibraryScreen() {
         ListHeaderComponent={
           <>
             {Header}
-            <Text style={styles.sectionHint}>Charts Albums</Text>
+            <Text style={styles.sectionHint}>Top Charts</Text>
           </>
         }
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.cardRow}
             activeOpacity={0.85}
-            onPress={() => navigation.navigate("AlbumDetail", { album: item })}
+            onPress={() =>
+              navigation.navigate("ChartDetail", { chart: item })
+            }
+
           >
-            <Image source={{ uri: item.cover }} style={styles.cardImage} />
+            <Image
+              source={{
+                uri: item.cover?.startsWith("http")
+                  ? item.cover
+                  : `${BASE_URL}/image/${item.cover}`,
+              }}
+              style={styles.cardImage}
+            />
             <View style={{ flex: 1, marginLeft: 12 }}>
               <Text style={styles.cardTitle} numberOfLines={1}>
                 {item.name}
               </Text>
-              <Text style={styles.cardSub}>{item.artist}</Text>
+              <Text style={styles.cardSub} numberOfLines={1}>
+                {item.region || "Global"} •{" "}
+                {item.albums?.length || item.songs?.length || 0} items
+              </Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#111827" />
           </TouchableOpacity>
         )}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         ListEmptyComponent={
-          <Text style={{ textAlign: "center", color: "#6B7280", marginTop: 10 }}>
-            Không có album nào trong Charts.
+          <Text
+            style={{ textAlign: "center", color: "#6B7280", marginTop: 10 }}
+          >
+            Không có chart nào.
           </Text>
         }
         contentContainerStyle={{ paddingBottom: 100 }}
       />
     );
   }
+
   if (activeTab === "Artists") {
     return (
       <FlatList

@@ -10,7 +10,9 @@ export type RootStackParamList = {
   Settings: undefined;
   AddPlaylistScreen: undefined;
   ArtistDetail: { artist: any };
-  AlbumDetail: { albums: any }
+  AlbumDetail: { albums: any };
+  ChartDetail : { chartId: string };
+  CommentDetail: { song: any };
 };
 
 export type AuthStackParamList = {

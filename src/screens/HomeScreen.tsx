@@ -200,9 +200,14 @@ export default function HomeScreen() {
             <Image
               style={styles.avatar}
               source={{
-                uri: "https://cdn-icons-png.flaticon.com/512/4825/4825038.png",
+                uri: user?.avatar
+                  ? (user.avatar.startsWith("http")
+                    ? user.avatar
+                    : `${BASE_URL}/image/avatars/${user.avatar}`)
+                  : "https://cdn-icons-png.flaticon.com/512/4825/4825038.png",
               }}
             />
+
           </MenuTrigger>
           <MenuOptions
             customStyles={{

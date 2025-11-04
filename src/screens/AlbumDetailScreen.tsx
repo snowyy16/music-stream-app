@@ -26,16 +26,18 @@ type Song = {
 };
 
 export default function AlbumDetailScreen() {
-    const route = useRoute();
+    const route = useRoute<any>();
     const navigation = useNavigation<any>();
-    const { album }: any = route.params;
+    const { album } = route.params;
     const [songs, setSongs] = useState<Song[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchSongs = async () => {
             try {
-                const res = await fetch(`${BASE_URL}/api/songs/by-album/${encodeURIComponent(album.name)}`);
+                const res = await fetch(
+                    `${BASE_URL}/api/songs/by-album/${encodeURIComponent(album.name)}`
+                );
                 const data: Song[] = await res.json();
                 setSongs(data.map(withFullUrl));
             } catch (err) {
@@ -57,7 +59,6 @@ export default function AlbumDetailScreen() {
                     queue: songs,
                     index: songs.findIndex((s) => s._id === item._id),
                 })
-
             }
         >
             <Image source={{ uri: item.image }} style={styles.songImage} />
@@ -67,12 +68,20 @@ export default function AlbumDetailScreen() {
                 </Text>
                 <Text style={styles.songArtist}>{item.artist}</Text>
             </View>
-            <Ionicons name="play-circle" size={26} color="#1DB954" />
+            <Ionicons name="play-circle-outline" size={26} color="#1DB954" />
         </TouchableOpacity>
     );
 
     return (
         <SafeAreaView style={styles.safeArea}>
+            {/* Header cố định với nút back */}
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                    <Ionicons name="chevron-back" size={26} color="#111827" />
+                </TouchableOpacity>
+                <View style={{ width: 26 }} />
+            </View>
+
             <View style={styles.container}>
                 <Image source={{ uri: album.cover }} style={styles.albumCover} />
                 <Text style={styles.albumName}>{album.name}</Text>
@@ -82,13 +91,16 @@ export default function AlbumDetailScreen() {
                 {loading ? (
                     <ActivityIndicator size="large" color="#1DB954" />
                 ) : songs.length === 0 ? (
-                    <Text style={styles.emptyText}>Không có bài hát nào trong album này.</Text>
+                    <Text style={styles.emptyText}>
+                        Không có bài hát nào trong album này.
+                    </Text>
                 ) : (
                     <FlatList
                         data={songs}
                         keyExtractor={(item) => item._id}
                         renderItem={renderSong}
                         contentContainerStyle={{ paddingBottom: 80 }}
+                        showsVerticalScrollIndicator={false}
                     />
                 )}
             </View>
@@ -101,6 +113,13 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#F9FAFB",
         paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+    },
+    header: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingHorizontal: 16,
+        paddingVertical: 12,
     },
     container: {
         flex: 1,

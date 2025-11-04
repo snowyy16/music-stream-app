@@ -10,6 +10,9 @@ import artistRoutes from "./routes/artistRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
 import albumRoutes from "./routes/albumRoutes.js";
 import playlistRoutes from "./routes/playlistRoutes.js";
+import chartRoutes from "./routes/chartRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+
 
 
 
@@ -36,6 +39,10 @@ app.use("/api/artists", artistRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/albums", albumRoutes);
 app.use("/api/playlists", playlistRoutes);
+app.use("/api/charts", chartRoutes);
+app.use("/api/users", userRoutes);
+app.use("/image/avatars", express.static("uploads/avatars"));
+
 
 // ✅ Public file tĩnh
 app.use(

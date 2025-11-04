@@ -1,26 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { withFullUrl } from "../utils/url";
 import {
     View,
     Text,
     StyleSheet,
     Image,
-    ScrollView,
     TouchableOpacity,
+    FlatList,
     ActivityIndicator,
+    SafeAreaView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import { BASE_URL } from "../config";
+import { withFullUrl } from "../utils/url";
 import { useAuth } from "../context/AuthContext";
-
-type Artist = {
-    _id: string;
-    name: string;
-    avatar: string;
-    country?: string;
-    followers?: number;
-};
 
 type Song = {
     _id: string;
@@ -28,24 +21,21 @@ type Song = {
     artist: string;
     image: string;
     url: string;
+    category?: string;
 };
 
-type RouteParams = {
-    artist: Artist;
-};
 
 export default function ArtistDetail() {
-    const route = useRoute<RouteProp<Record<string, RouteParams>, string>>();
+    const route = useRoute<any>();
     const navigation = useNavigation<any>();
-    const artist = route.params?.artist;
+    const { artist } = route.params;
+    const { user } = useAuth();
 
-    const { user } = useAuth(); // user đăng nhập hiện tại
     const [followers, setFollowers] = useState<number>(artist?.followers || 0);
     const [isFollowing, setIsFollowing] = useState(false);
     const [songs, setSongs] = useState<Song[]>([]);
     const [loading, setLoading] = useState(true);
 
-    /** 1️⃣ Kiểm tra xem user đã follow chưa */
     useEffect(() => {
         const checkFollowStatus = async () => {
             if (!artist?._id || !user?._id) return;
@@ -60,7 +50,6 @@ export default function ArtistDetail() {
         checkFollowStatus();
     }, [artist, user]);
 
-    /** 2️⃣ Xử lý follow/unfollow */
     const handleFollow = async () => {
         if (!artist?._id || !user?._id) return;
         try {
@@ -75,20 +64,17 @@ export default function ArtistDetail() {
                 setIsFollowing(data.followed);
             }
         } catch (err) {
-            console.error("❌ Lỗi khi follow/unfollow:", err);
+            console.error("❌ Lỗi follow/unfollow:", err);
         }
     };
 
-    /** 3️⃣ Lấy danh sách bài hát theo nghệ sĩ */
     useEffect(() => {
         const loadSongsByArtist = async () => {
-            if (!artist?.name) return;
-            setLoading(true);
             try {
                 const res = await fetch(`${BASE_URL}/api/songs`);
-                const data: Song[] = await res.json();
+                const data = await res.json();
                 const songsWithUrl = data.map(withFullUrl);
-                const filtered = songsWithUrl.filter((s) =>
+                const filtered = songsWithUrl.filter((s: Song) =>
                     s.artist.trim().toLowerCase().includes(artist.name.trim().toLowerCase())
                 );
                 setSongs(filtered);
@@ -98,13 +84,33 @@ export default function ArtistDetail() {
                 setLoading(false);
             }
         };
-
         loadSongsByArtist();
     }, [artist]);
 
+    const renderSong = ({ item, index }: any) => (
+        <TouchableOpacity
+            key={item._id}
+            style={styles.songRow}
+            onPress={() =>
+                navigation.navigate("PlayScreen", {
+                    song: item,
+                    queue: songs,
+                    index,
+                })
+            }
+        >
+            <Image source={{ uri: item.image }} style={styles.songImage} />
+            <View style={{ flex: 1 }}>
+                <Text style={styles.songTitle}>{item.title}</Text>
+                <Text style={styles.songArtist}>{item.artist}</Text>
+            </View>
+            <Ionicons name="play-circle-outline" size={26} color="#1DB954" />
+        </TouchableOpacity>
+    );
+
     return (
-        <ScrollView style={styles.container}>
-            {/* Header */}
+        <SafeAreaView style={styles.safeArea}>
+            {/* Header cố định */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Ionicons name="chevron-back" size={26} color="#111827" />
@@ -112,20 +118,20 @@ export default function ArtistDetail() {
                 <View style={{ width: 26 }} />
             </View>
 
-            {/* Artist Info */}
-            <View style={styles.info}>
+            {/* Thông tin nghệ sĩ cố định */}
+            <View style={styles.fixedInfo}>
                 <Image
                     source={{
-                        uri: artist?.avatar?.startsWith("http")
+                        uri: artist.avatar?.startsWith("http")
                             ? artist.avatar
                             : `${BASE_URL}/image/${artist.avatar}`,
                     }}
                     style={styles.avatar}
                 />
 
-                <Text style={styles.name}>{artist?.name}</Text>
+                <Text style={styles.name}>{artist.name}</Text>
                 <Text style={styles.meta}>
-                    {artist?.country || "Vietnam"} • {followers} followers
+                    {artist.country || "Vietnam"} • {followers} followers
                 </Text>
 
                 <TouchableOpacity
@@ -146,74 +152,64 @@ export default function ArtistDetail() {
                 </TouchableOpacity>
             </View>
 
-            {/* Songs Section */}
-            <Text style={styles.sectionTitle}>Songs</Text>
+            {/* Danh sách bài hát */}
             {loading ? (
-                <ActivityIndicator size="large" color="#111827" style={{ marginTop: 20 }} />
+                <ActivityIndicator size="large" color="#111827" style={{ marginTop: 40 }} />
             ) : songs.length === 0 ? (
                 <Text style={styles.noSongs}>Nghệ sĩ này chưa có bài hát.</Text>
             ) : (
-                songs.map((song) => (
-                    <TouchableOpacity
-                        key={song._id}
-                        style={styles.songCard}
-                        onPress={() =>
-                            navigation.navigate("PlayScreen", {
-                                song,
-                                queue: songs,
-                                index: songs.findIndex((s) => s._id === song._id),
-                            })
-                        }
-                    >
-                        <Image source={{ uri: song.image }} style={styles.songImage} />
-                        <View style={{ flex: 1 }}>
-                            <Text style={styles.songTitle}>{song.title}</Text>
-                            <Text style={styles.songArtist}>{song.artist}</Text>
-                        </View>
-                        <Ionicons name="play" size={22} color="#1DB954" />
-                    </TouchableOpacity>
-                ))
+                <FlatList
+                    data={songs}
+                    keyExtractor={(item) => item._id}
+                    renderItem={renderSong}
+                    contentContainerStyle={{ paddingBottom: 100 }}
+                    showsVerticalScrollIndicator={false}
+                />
             )}
-        </ScrollView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#fff", padding: 18 },
+    safeArea: { flex: 1, backgroundColor: "#fff" },
     header: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        marginBottom: 16,
+        padding: 16,
     },
-    info: { alignItems: "center", marginBottom: 30 },
-    avatar: { width: 130, height: 130, borderRadius: 65, marginBottom: 10 },
+    fixedInfo: {
+        alignItems: "center",
+        paddingHorizontal: 16,
+        marginBottom: 10,
+    },
+    avatar: { width: 150, height: 150, borderRadius: 75, marginBottom: 10 },
     name: { fontSize: 26, fontWeight: "800", color: "#111827" },
     meta: { color: "#6B7280", fontSize: 14, marginBottom: 10 },
     followBtn: {
         flexDirection: "row",
         alignItems: "center",
         borderRadius: 25,
-        paddingHorizontal: 18,
+        paddingHorizontal: 20,
         paddingVertical: 8,
     },
     followText: { color: "#fff", fontWeight: "600", marginLeft: 6 },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: "#111827",
-        marginBottom: 12,
-    },
-    songCard: {
+    songRow: {
         flexDirection: "row",
         alignItems: "center",
         marginBottom: 12,
         backgroundColor: "#F9FAFB",
         borderRadius: 12,
         padding: 10,
+        marginHorizontal: 16,
     },
-    songImage: { width: 55, height: 55, borderRadius: 8, marginRight: 12 },
-    songTitle: { fontSize: 15, fontWeight: "600", color: "#111827" },
+    songImage: {
+        width: 60,
+        height: 60,
+        borderRadius: 8,
+        marginRight: 12,
+    },
+    songTitle: { fontSize: 16, fontWeight: "600", color: "#1F2937" },
     songArtist: { fontSize: 13, color: "#6B7280" },
     noSongs: { color: "#6B7280", textAlign: "center", marginTop: 20 },
 });

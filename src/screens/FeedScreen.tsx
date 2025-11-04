@@ -51,6 +51,7 @@ export default function FeedScreen() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [commentText, setCommentText] = useState("");
+  
 
   const handleLogout = () => {
     logout();
@@ -163,7 +164,17 @@ export default function FeedScreen() {
         }
       >
         <View style={styles.imageContainer}>
-          <Image source={{ uri: item.image }} style={styles.coverImage} />
+          <Image
+            source={{
+              uri: item.image
+                ? item.image.startsWith("http")
+                  ? item.image
+                  : `${BASE_URL}/image/${item.image}`
+                : "https://placehold.co/600x400/png?text=No+Image",
+            }}
+            style={styles.coverImage}
+          />
+
           <View style={styles.overlay}>
             <Text style={styles.songTitle}>{item.title}</Text>
             <Text style={styles.songArtist}>{item.artist}</Text>
@@ -173,7 +184,10 @@ export default function FeedScreen() {
 
       {/* Action */}
       <View style={styles.actions}>
-        <TouchableOpacity onPress={() => handleShowComments(item)} style={styles.actionBtn}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("CommentDetail", { song: item, user: user })}
+          style={styles.actionBtn}
+        >
           <Ionicons name="chatbubble-outline" size={20} color="#444" />
           <Text style={styles.actionText}>Bình luận</Text>
         </TouchableOpacity>
@@ -192,9 +206,14 @@ export default function FeedScreen() {
             <Image
               style={styles.avatar}
               source={{
-                uri: "https://cdn-icons-png.flaticon.com/512/4825/4825038.png",
+                uri: user?.avatar
+                  ? user.avatar.startsWith("http")
+                    ? user.avatar
+                    : `${BASE_URL}/image/avatars/${user.avatar}`
+                  : "https://cdn-icons-png.flaticon.com/512/4825/4825038.png",
               }}
             />
+
           </MenuTrigger>
 
           <MenuOptions
@@ -303,7 +322,7 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 32, fontWeight: "900", color: "#1F2937" },
   postCard: { marginBottom: 24 },
   userRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16 },
-  avatar: { width: 42, height: 42, borderRadius: 21, marginRight: 10, marginBottom : 10 },
+  avatar: { width: 42, height: 42, borderRadius: 21, marginRight: 10, marginBottom: 10 },
   username: { fontWeight: "700" },
   posted: { fontSize: 12, color: "#777" },
   imageContainer: { marginHorizontal: 16, borderRadius: 10, overflow: "hidden", backgroundColor: "#ddd" },

@@ -21,6 +21,8 @@ import SettingsScreen from "../screens/SettingsScreen";
 import AddPlaylistScreen from "../screens/AddPlaylistScreen";
 import ArtistDetail from "../screens/ArtistDetail";
 import AlbumDetailScreen from "../screens/AlbumDetailScreen";
+import ChartDetail from "../screens/ChartDetail";
+import CommentDetailScreen from "../screens/CommentDetailScreen";
 
 
 
@@ -123,10 +125,21 @@ export default function AppNavigator() {
         options={{ headerShown: false }}
       />
       <RootStack.Screen
-        name="AlbumDetail" 
+        name="AlbumDetail"
         component={AlbumDetailScreen}
         options={{ headerShown: false }}
       />
+      <RootStack.Screen
+        name="ChartDetail"
+        component={ChartDetail}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="CommentDetail"
+        component={CommentDetailScreen}
+        options={{ headerShown: false }}
+      />
+
 
     </RootStack.Navigator>
 

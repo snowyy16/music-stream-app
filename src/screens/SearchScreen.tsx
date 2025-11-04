@@ -156,8 +156,15 @@ export default function SearchScreen() {
             {/* Ảnh đại diện làm nút kích hoạt Menu */}
             <Image
               style={styles.avatar}
-              source={{ uri: "https://cdn-icons-png.flaticon.com/512/4825/4825038.png" }}
+              source={{
+                uri: user?.avatar
+                  ? user.avatar.startsWith("http")
+                    ? user.avatar
+                    : `${BASE_URL}/image/avatars/${user.avatar}`
+                  : "https://cdn-icons-png.flaticon.com/512/4825/4825038.png",
+              }}
             />
+
           </MenuTrigger>
 
           <MenuOptions
@@ -291,9 +298,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontWeight: "900", 
-    color: "#1F2937", 
-    marginBottom: 20, 
+    fontWeight: "900",
+    color: "#1F2937",
+    marginBottom: 20,
   },
   searchBox: {
     flexDirection: "row",

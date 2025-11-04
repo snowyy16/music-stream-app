@@ -22,11 +22,18 @@ router.post("/", async (req, res) => {
     if (!song || !user || !text)
       return res.status(400).json({ message: "Thiếu dữ liệu bình luận." });
 
+    // Tạo bình luận mới
     const comment = await Comment.create({ song, user, text });
-    res.json(comment);
+
+    // ✅ Populate user để trả về đầy đủ avatar & username
+    const populatedComment = await comment.populate("user", "username avatar");
+
+    res.status(201).json(populatedComment);
   } catch (err) {
+    console.error("❌ Lỗi khi thêm bình luận:", err);
     res.status(400).json({ message: "Không thể thêm bình luận." });
   }
 });
+
 
 export default router;
