@@ -7,16 +7,19 @@ type Ref = { sound: Audio.Sound | null };
 export const activeSoundRef: Ref = { sound: null };
 
 // Dừng và giải phóng sound đang phát (nếu có)
-export async function stopActiveSound() {
-  try {
-    if (activeSoundRef.sound) {
-      await activeSoundRef.sound.stopAsync().catch(() => {});
-      await activeSoundRef.sound.unloadAsync().catch(() => {});
+export const stopActiveSound = async () => {
+  if (activeSoundRef.sound) {
+    try {
+      await activeSoundRef.sound.stopAsync();
+      await activeSoundRef.sound.unloadAsync();
+    } catch (e) {
+      console.log("stopActiveSound error:", e);
+    } finally {
+      activeSoundRef.sound = null;
     }
-  } finally {
-    activeSoundRef.sound = null;
   }
-}
+};
+
 
 // 🔊 Hàm này sẽ load và phát bài mới
 export async function loadAndPlay(song: { url: string }) {

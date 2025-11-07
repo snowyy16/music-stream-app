@@ -55,24 +55,39 @@ export default function CommentDetailScreen() {
     };
 
     const handleSend = async () => {
+        if (!user?._id) {
+            alert("⚠️ Bạn cần đăng nhập để bình luận!");
+            return;
+        }
+
         if (!commentText.trim()) return;
+
         try {
             const res = await fetch(`${BASE_URL}/api/comments`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     song: song._id,
-                    user: user?._id,
+                    user: user._id,
                     text: commentText,
                 }),
             });
-            const newComment = await res.json();
-            setComments((prev) => [newComment, ...prev]);
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                alert(data.message || "❌ Không thể thêm bình luận.");
+                return;
+            }
+
+            setComments((prev) => [data, ...prev]);
             setCommentText("");
         } catch (err) {
-            console.error("❌ Không thể thêm bình luận:", err);
+            console.error("❌ Lỗi gửi bình luận:", err);
+            alert("Không thể kết nối tới máy chủ.");
         }
     };
+
 
     useEffect(() => {
         fetchComments();
@@ -134,9 +149,11 @@ export default function CommentDetailScreen() {
                                     style={styles.commentAvatar}
                                 />
 
+
                                 <View>
-                                    <Text style={styles.commentName}>{c.user.username}</Text>
+                                    <Text style={styles.commentName}>{c.user?.username || "Người dùng ẩn"}</Text>
                                     <Text style={styles.commentText}>{c.text}</Text>
+
                                 </View>
                             </View>
                         ))

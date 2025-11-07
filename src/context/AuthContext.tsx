@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
+import { stopActiveSound } from "../player/manager"; // 
 
 interface User {
-  _id: string;                     
-  username: string;                
-  email: string;                   
-  avatar?: string;                 
-  createdAt?: string;              
-  updatedAt?: string;              
+  _id: string;
+  username: string;
+  email: string;
+  avatar?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface AuthContextType {
@@ -14,7 +15,7 @@ interface AuthContextType {
   login: (userData: User) => void;
   logout: () => void;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
-  isLoggedIn: boolean;             
+  isLoggedIn: boolean;
 }
 
 
@@ -40,7 +41,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // 🧩 Dừng nhạc khi user logout
+    try {
+      await stopActiveSound();
+    } catch (e) {
+      console.warn("Không thể dừng nhạc khi logout:", e);
+    }
+
     setUser(null);
   };
 

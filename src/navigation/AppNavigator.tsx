@@ -3,46 +3,35 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import colors from "../theme/colors";
-
-
-
-import type {
-  RootStackParamList,
-  AuthStackParamList,
-  BottomTabParamList,
-} from "../types/navigation";
+import { useAuth } from "../context/AuthContext"; // 🧩 thêm dòng này
+import MiniPlayer from "../components/MiniPlayer"; // 🧩 nếu bạn có miniplayer riêng
 
 import RegisterScreen from "../screens/RegisterScreen";
 import LoginScreen from "../screens/LoginScreen";
 import HomeScreen from "../screens/HomeScreen";
 import FeedScreen from "../screens/FeedScreen";
-import PlaylistDetail from "../screens/PlaylistDetail"; // ⬅️ thêm
+import PlaylistDetail from "../screens/PlaylistDetail";
 import SettingsScreen from "../screens/SettingsScreen";
 import AddPlaylistScreen from "../screens/AddPlaylistScreen";
 import ArtistDetail from "../screens/ArtistDetail";
 import AlbumDetailScreen from "../screens/AlbumDetailScreen";
 import ChartDetail from "../screens/ChartDetail";
 import CommentDetailScreen from "../screens/CommentDetailScreen";
-
-
-
 import LibraryScreen from "../screens/LibraryScreen";
 import PremiumSubscriptionScreen from "../screens/PremiumSubscriptionScreen";
 import SearchScreen from "../screens/SearchScreen";
 import CategoryDetailScreen from "../screens/CategoriesDetailScreen";
 import PlayScreen from "../screens/PlayScreen";
 
-const RootStack = createNativeStackNavigator<RootStackParamList>();
-const AuthStack = createNativeStackNavigator<AuthStackParamList>();
-const Tab = createBottomTabNavigator<BottomTabParamList>();
+const RootStack = createNativeStackNavigator();
+const AuthStack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
 
-// Auth stack (Login + Register)
 function AuthStackNavigator() {
   return (
     <AuthStack.Navigator screenOptions={{ headerShown: false }}>
       <AuthStack.Screen name="Login" component={LoginScreen} />
       <AuthStack.Screen name="Register" component={RegisterScreen} />
-
     </AuthStack.Navigator>
   );
 }
@@ -81,67 +70,38 @@ function MainTabs() {
 }
 
 export default function AppNavigator() {
+  const { user } = useAuth(); // 🧠 Lấy trạng thái đăng nhập
+
   return (
     <RootStack.Navigator
-      initialRouteName="AuthStack"
       screenOptions={{
         headerShown: false,
         animation: "slide_from_right",
-        gestureEnabled: true,
       }}
     >
-
-      <RootStack.Screen name="AuthStack" component={AuthStackNavigator} />
-      <RootStack.Screen name="HomeStack" component={MainTabs} />
-      <RootStack.Screen
-        name="PremiumSubscriptionScreen"
-        component={PremiumSubscriptionScreen}
-        options={{ headerShown: false }}
-      />
-      <RootStack.Screen
-        name="CategoryDetail"
-        component={CategoryDetailScreen}
-        options={{ headerShown: false }}
-      />
-      <RootStack.Screen name="PlayScreen" component={PlayScreen} />
-      <RootStack.Screen
-        name="PlaylistDetail"
-        component={PlaylistDetail}
-        options={{ headerShown: false }}
-      />
-      <RootStack.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{ headerShown: false }}
-      />
-      <RootStack.Screen
-        name="AddPlaylistScreen"
-        component={AddPlaylistScreen}
-        options={{ headerShown: false }}
-      />
-      <RootStack.Screen
-        name="ArtistDetail"
-        component={ArtistDetail}
-        options={{ headerShown: false }}
-      />
-      <RootStack.Screen
-        name="AlbumDetail"
-        component={AlbumDetailScreen}
-        options={{ headerShown: false }}
-      />
-      <RootStack.Screen
-        name="ChartDetail"
-        component={ChartDetail}
-        options={{ headerShown: false }}
-      />
-      <RootStack.Screen
-        name="CommentDetail"
-        component={CommentDetailScreen}
-        options={{ headerShown: false }}
-      />
-
-
+      {user ? ( // 🔥 Nếu đã login thì hiển thị MainTabs
+        <>
+          <RootStack.Screen name="HomeStack" component={MainTabs} />
+          <RootStack.Screen name="PlayScreen" component={PlayScreen} />
+          <RootStack.Screen name="Settings" component={SettingsScreen} />
+          <RootStack.Screen name="PlaylistDetail" component={PlaylistDetail} />
+          <RootStack.Screen name="CategoryDetail" component={CategoryDetailScreen} />
+          <RootStack.Screen name="ArtistDetail" component={ArtistDetail} />
+          <RootStack.Screen name="AlbumDetail" component={AlbumDetailScreen} />
+          <RootStack.Screen name="ChartDetail" component={ChartDetail} />
+          <RootStack.Screen name="CommentDetail" component={CommentDetailScreen} />
+          <RootStack.Screen name="PremiumSubscriptionScreen" component={PremiumSubscriptionScreen} />
+          <RootStack.Screen name="AddPlaylistScreen" component={AddPlaylistScreen} />
+          {/* 🎧 MiniPlayer chỉ hiện khi có user */}
+          <RootStack.Screen
+            name="MiniPlayer"
+            component={MiniPlayer}
+            options={{ presentation: "transparentModal" }}
+          />
+        </>
+      ) : (
+        <RootStack.Screen name="AuthStack" component={AuthStackNavigator} />
+      )}
     </RootStack.Navigator>
-
   );
 }

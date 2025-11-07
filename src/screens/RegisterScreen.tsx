@@ -9,9 +9,11 @@ import {
   Image,
   Alert,
 } from "react-native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack"; // ⚠️ Import chung kiểu từ LoginScreen
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { BASE_URL } from "../config";
 import type { AuthStackParamList } from "../types/navigation";
+
+
 
 type RegisterScreenNavigationProp = NativeStackNavigationProp<
   AuthStackParamList,
@@ -28,16 +30,36 @@ export default function RegisterScreen({ navigation }: Props) {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
 
+  const NAME_RE = /^[A-Za-zÀ-ỹ\s'.-]{2,40}$/u;
+  const EMAIL_RE = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+  const PASSWORD_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,64}$/;
+
   const handleRegister = async () => {
-    if (!username || !email || !password || !confirm) {
+    const u = username.trim();
+    const e = email.trim();
+    const p = password;      // không trim password
+    const c = confirm;
+
+    if (!u || !e || !p || !c) {
       Alert.alert("Thiếu thông tin", "Vui lòng điền đầy đủ các trường.");
       return;
     }
-    if (password !== confirm) {
+    if (!NAME_RE.test(u)) {
+      Alert.alert("Họ tên thật, có dấu, khoảng trắng, gạch nối...");
+      return;
+    }
+    if (!EMAIL_RE.test(e)) {
+      Alert.alert("Sai định dạng", "Email không hợp lệ.");
+      return;
+    }
+    if (!PASSWORD_RE.test(p)) {
+      Alert.alert("Mật khẩu chưa đủ mạnh", "Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.");
+      return;
+    }
+    if (p !== c) {
       Alert.alert("Lỗi mật khẩu", "Mật khẩu xác nhận không khớp.");
       return;
     }
-
     try {
       const res = await fetch(`${BASE_URL}/api/auth/register`, {
         method: "POST",

@@ -10,15 +10,17 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { usePlayer } from "../player/store";
+import { useAuth } from "../context/AuthContext"; // 🧩 thêm dòng này
 
 const { width } = Dimensions.get("window");
 
 export default function MiniPlayer() {
   const navigation = useNavigation<any>();
-  const { song, isPlaying, position, duration, togglePlayPause, queue, index } =
-    usePlayer(); // ✅ bỏ next, prev
+  const { song, isPlaying, position, duration, togglePlayPause } = usePlayer();
+  const { user } = useAuth(); // 🧠 lấy thông tin user đăng nhập
 
-  if (!song) return null;
+  // 🧩 Nếu chưa đăng nhập hoặc chưa có bài hát → ẩn luôn
+  if (!user || !song) return null;
 
   const progress = duration > 0 ? Math.min(1, position / duration) : 0;
 
@@ -47,7 +49,7 @@ export default function MiniPlayer() {
           </Text>
         </View>
 
-        {/* ✅ Chỉ giữ nút Play/Pause */}
+        {/* Nút Play/Pause */}
         <TouchableOpacity onPress={togglePlayPause} style={styles.iconBtn}>
           <Ionicons
             name={isPlaying ? "pause" : "play"}
@@ -91,6 +93,6 @@ const styles = StyleSheet.create({
   info: { flex: 1, justifyContent: "center" },
   title: { fontSize: 14, fontWeight: "700", color: "#111827" },
   artist: { fontSize: 12, color: "#6B7280", marginTop: 2 },
-  iconBtn: { paddingHorizontal: 10, paddingVertical: 4 }, // ✅ căn giữa đẹp hơn
+  iconBtn: { paddingHorizontal: 10, paddingVertical: 4 },
   progress: { height: 2, backgroundColor: "#1DB954" },
 });
