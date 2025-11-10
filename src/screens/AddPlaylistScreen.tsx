@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
+import { BASE_URL } from "../config";
 
 export default function AddPlaylistScreen({ navigation }: any) {
   const [name, setName] = useState("");
@@ -36,17 +37,52 @@ export default function AddPlaylistScreen({ navigation }: any) {
     }
   };
 
-  // 💾 Lưu playlist (demo local)
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) {
       Alert.alert("Thiếu thông tin", "Hãy nhập tên playlist!");
       return;
     }
 
-    // 👉 Ở đây có thể gọi API để lưu playlist thật vào DB
-    Alert.alert("🎉 Thành công", `Playlist "${name}" đã được tạo.`);
-    navigation.goBack();
+    try {
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("description", "");
+      formData.append("owner", "System");
+
+      if (cover) {
+        const filename = cover.split("/").pop() || `cover_${Date.now()}.jpg`;
+        formData.append("cover", {
+          uri: cover,
+          name: filename,
+          type: "image/jpeg",
+        } as any);
+      }
+
+      const res = await fetch(`${BASE_URL}/api/playlists`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Lỗi khi tải ảnh lên server");
+      }
+
+      const data = await res.json();
+      console.log("✅ Playlist đã được lưu:", data);
+      Alert.alert("🎉 Thành công", `Playlist "${name}" đã được tạo.`);
+      navigation.goBack();
+    } catch (error: any) {
+      console.error("❌ Lỗi thêm playlist:", error);
+      Alert.alert("Lỗi", error.message || "Không thể tải ảnh lên server.");
+    }
   };
+
+
+
 
   return (
     <View style={styles.container}>

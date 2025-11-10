@@ -201,13 +201,14 @@ export default function HomeScreen() {
               style={styles.avatar}
               source={{
                 uri: user?.avatar
-                  ? (user.avatar.startsWith("http")
-                    ? user.avatar
-                    : `${BASE_URL}/image/avatars/${user.avatar}`)
+                  ? user.avatar.startsWith("http")
+                    ? `${user.avatar}?t=${Date.now()}`
+                    : user.avatar.startsWith("/image")
+                      ? `${BASE_URL}${user.avatar}?t=${Date.now()}`
+                      : `${BASE_URL}/image/avatars/${user.avatar}?t=${Date.now()}`
                   : "https://cdn-icons-png.flaticon.com/512/4825/4825038.png",
               }}
             />
-
           </MenuTrigger>
           <MenuOptions
             customStyles={{

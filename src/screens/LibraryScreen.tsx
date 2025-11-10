@@ -52,10 +52,15 @@ export default function LibraryScreen() {
   const [albums, setAlbums] = useState<any[]>([]);
   const [chartAlbums, setChartAlbums] = useState<any[]>([]);
   const [playlists, setPlaylists] = useState<any[]>([]);
-
-
   const API_URL = `${BASE_URL}/api/songs`;
   const { user, logout } = useAuth();
+
+  const onRefreshPlaylists = async () => {
+    setRefreshing(true);
+    await fetchPlaylists();
+    setRefreshing(false);
+  };
+
   const fetchArtists = useCallback(async () => {
     try {
       const res = await fetch(`${BASE_URL}/api/artists`);
@@ -363,12 +368,17 @@ export default function LibraryScreen() {
             >
               <Image
                 source={{
-                  uri: item.cover?.startsWith("http")
-                    ? item.cover
-                    : `${BASE_URL}/image/${item.cover}`,
+                  uri:
+                    item.cover
+                      ? item.cover.startsWith("http")
+                        ? item.cover
+                        : `${BASE_URL}${item.cover.startsWith("/") ? "" : "/"}${item.cover}`
+                      : "https://cdn-icons-png.flaticon.com/512/4825/4825038.png",
                 }}
                 style={styles.cardImage}
               />
+
+
               <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text style={styles.cardTitle} numberOfLines={1}>
                   {item.name}
@@ -380,6 +390,14 @@ export default function LibraryScreen() {
               <Ionicons name="chevron-forward" size={20} color="#111827" />
             </TouchableOpacity>
           )}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefreshPlaylists}
+              tintColor="#1DB954"
+              colors={["#1DB954"]}
+            />
+          }
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
           ListEmptyComponent={
             <Text style={{ textAlign: "center", color: "#6B7280", marginTop: 10 }}>
@@ -388,8 +406,6 @@ export default function LibraryScreen() {
           }
           contentContainerStyle={{ paddingBottom: 140 }}
         />
-
-        {/* ✅ Floating Button */}
         <TouchableOpacity
           style={styles.fab}
           activeOpacity={0.8}

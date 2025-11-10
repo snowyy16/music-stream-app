@@ -32,7 +32,21 @@ mongoose
   .then(() => console.log("✅ Đã kết nối MongoDB"))
   .catch((err) => console.log("❌ Lỗi MongoDB:", err));
 
-// ✅ Routes
+// ✅ Static serve đặt TRƯỚC routes
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/image", express.static(path.join(__dirname, "image")));
+app.use(
+  "/image/avatars",
+  express.static(path.join(__dirname, "uploads/avatars"))
+);
+app.use(
+  "/music",
+  express.static(path.join(__dirname, "music"), {
+    setHeaders: (res) => res.set("Content-Type", "audio/mpeg"),
+  })
+);
+
+// ✅ Sau đó mới tới API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/songs", songRoutes);
 app.use("/api/artists", artistRoutes);
@@ -41,18 +55,6 @@ app.use("/api/albums", albumRoutes);
 app.use("/api/playlists", playlistRoutes);
 app.use("/api/charts", chartRoutes);
 app.use("/api/users", userRoutes);
-app.use("/image/avatars", express.static("uploads/avatars"));
-
-
-// ✅ Public file tĩnh
-app.use(
-  "/music",
-  express.static(path.join(__dirname, "music"), {
-    setHeaders: (res) => res.set("Content-Type", "audio/mpeg"),
-  })
-);
-app.use("/image", express.static(path.join(__dirname, "image")));
-
 app.get("/", (req, res) => res.send("🎶 API chạy tốt"));
 
 app.listen(process.env.PORT || 4000, "0.0.0.0", () => {

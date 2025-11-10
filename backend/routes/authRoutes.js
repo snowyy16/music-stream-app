@@ -1,6 +1,8 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
 const router = express.Router();
 
@@ -10,8 +12,6 @@ const userSchema = new mongoose.Schema({
   email: { type: String, unique: true },
   password: String,
 }, { timestamps: true });
-
-const User = mongoose.model("User", userSchema);
 
 // ✅ Đăng ký
 router.post("/register", async (req, res) => {
@@ -34,26 +34,37 @@ router.post("/register", async (req, res) => {
 
 // ✅ Đăng nhập
 router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
   try {
-    const { email, password } = req.body;
-
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: "Email không tồn tại" });
+    if (!user)
+      return res.status(404).json({ message: "Email không tồn tại" });
 
-    // ⚠️ Sửa ở đây: so sánh hash bằng bcrypt
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Mật khẩu sai" });
+    if (!isMatch)
+      return res.status(400).json({ message: "Sai mật khẩu" });
 
-    // Ẩn mật khẩu khi trả về client
-    const userData = user.toObject();
-    delete userData.password;
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
-    res.json({ message: "Đăng nhập thành công", user: userData });
+    // ✅ Trả về cả thông tin user
+    res.json({
+      token,
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+      },
+    });
   } catch (err) {
     console.error("❌ Lỗi đăng nhập:", err);
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: "Lỗi server khi đăng nhập" });
   }
 });
+
 
 // ✅ Cập nhật thông tin người dùng
 router.put("/update", async (req, res) => {

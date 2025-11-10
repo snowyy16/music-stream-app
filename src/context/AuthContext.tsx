@@ -35,7 +35,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       _id: userData._id,
       username: userData.username,
       email: userData.email,
-      avatar: userData.avatar || "https://picsum.photos/200/200",
+      avatar: userData.avatar !== undefined && userData.avatar !== ""
+        ? userData.avatar
+        : "https://cdn-icons-png.flaticon.com/512/4825/4825038.png",
       createdAt: userData.createdAt,
       updatedAt: userData.updatedAt,
     });

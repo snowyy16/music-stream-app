@@ -94,9 +94,22 @@ router.get("/:id/isFollowed", async (req, res) => {
   }
 });
 
+// ✅ Tìm kiếm nghệ sĩ theo từ khóa
+router.get("/search", async (req, res) => {
+  try {
+    const search = req.query.q?.trim();
+    if (!search) return res.json([]);
 
+    const artists = await Artist.find({
+      name: { $regex: search, $options: "i" },
+    });
 
-
+    res.json(artists);
+  } catch (err) {
+    console.error("❌ Lỗi tìm kiếm nghệ sĩ:", err);
+    res.status(500).json({ message: "Lỗi server khi tìm kiếm nghệ sĩ." });
+  }
+});
 
 
 export default router;
